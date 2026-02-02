@@ -9,6 +9,7 @@ export default function BookingPay() {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
+  // Fetch booking
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`, {
       headers: {
@@ -16,7 +17,8 @@ export default function BookingPay() {
       }
     })
       .then(res => res.json())
-      .then(setBooking);
+      .then(setBooking)
+      .catch(() => alert("Failed to load booking"));
   }, [bookingId]);
 
   const payNow = async () => {
@@ -37,6 +39,12 @@ export default function BookingPay() {
 
       const order = await res.json();
 
+      if (!order.id) {
+        alert("Failed to create payment order");
+        setLoading(false);
+        return;
+      }
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: order.amount,
@@ -46,24 +54,33 @@ export default function BookingPay() {
         order_id: order.id,
 
         handler: async function (response) {
-          setVerifying(true);
+          try {
+            setVerifying(true);
 
-          await fetch(
-            `${import.meta.env.VITE_API_URL}/api/payment/verify`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-              },
-              body: JSON.stringify({
-                ...response,
-                bookingId
-              })
-            }
-          );
+            const verifyRes = await fetch(
+              `${import.meta.env.VITE_API_URL}/api/payment/verify`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify({
+                  ...response,
+                  bookingId
+                })
+              }
+            );
 
-          navigate(`/booking/success/${bookingId}`);
+            const result = await verifyRes.json();
+
+            // 🔥 ALWAYS navigate using backend-confirmed bookingId
+            navigate(`/booking/success/${result.bookingId}`);
+          } catch {
+            alert("Payment verification failed");
+            setLoading(false);
+            setVerifying(false);
+          }
         },
 
         modal: {
@@ -75,17 +92,19 @@ export default function BookingPay() {
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (err) {
+    } catch {
       alert("Payment initiation failed");
       setLoading(false);
     }
   };
 
-  if (!booking) return <p className="p-10">Loading booking...</p>;
+  if (!booking) {
+    return <p className="p-10 text-center">Loading booking...</p>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      {/* OVERLAY LOADER */}
+      {/* Overlay Loader */}
       {(loading || verifying) && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white px-8 py-6 rounded-xl text-center shadow-xl">
@@ -99,6 +118,7 @@ export default function BookingPay() {
 
       <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md text-center">
         <h1 className="text-2xl font-bold mb-4">Confirm Payment</h1>
+
         <p className="mb-6 text-lg font-semibold">
           Amount: ₹{booking.amount}
         </p>
@@ -106,8 +126,7 @@ export default function BookingPay() {
         <button
           onClick={payNow}
           disabled={loading || verifying}
-          className="bg-green-700 text-white px-6 py-3 rounded-xl w-full
-                     disabled:bg-gray-400"
+          className="bg-green-700 text-white px-6 py-3 rounded-xl w-full disabled:bg-gray-400"
         >
           Pay Now
         </button>
