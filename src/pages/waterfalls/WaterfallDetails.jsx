@@ -4,31 +4,31 @@ import useScrollAnimation from "../../hooks/useScrollAnimation";
 import useParallax from "../../hooks/useParallax";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
-
 export default function WaterfallDetails() {
   const { slug } = useParams();
   const waterfall = waterfallsData.find((w) => w.slug === slug);
+
+  // ✅ SAFETY FIX
+  if (!waterfall) {
+    return <div className="pt-32 text-center">Waterfall not found</div>;
+  }
 
   const parallaxOffset = useParallax(0.25);
   const [aboutRef, aboutVisible] = useScrollAnimation();
   const [reachRef, reachVisible] = useScrollAnimation();
 
-  const photos = waterfall?.gallery?.photos || [];
-  const videos = waterfall?.gallery?.videos || [];
+  const photos = waterfall.gallery?.photos || [];
+  const videos = waterfall.gallery?.videos || [];
 
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [touchStartX, setTouchStartX] = useState(null);
-const navigate = useNavigate();
 
-const handleBookStay = () => {
-  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
-  if (token) {
-    navigate("/booking");
-  } else {
-    navigate("/login", { state: { from: "/booking" } });
-  }
-};
+  const handleBookStay = () => {
+    const token = localStorage.getItem("token");
+    token ? navigate("/booking") : navigate("/login", { state: { from: "/booking" } });
+  };
 
   /* ================= KEYBOARD CONTROLS ================= */
   useEffect(() => {
@@ -45,10 +45,6 @@ const handleBookStay = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxIndex, photos.length]);
-
-  if (!waterfall) {
-    return <div className="pt-32 text-center">Waterfall not found</div>;
-  }
 
   return (
     <>
@@ -68,34 +64,27 @@ const handleBookStay = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-3">
               {waterfall.name}
             </h1>
-            <p className="opacity-90 text-lg">
-              Parvathipuram Manyam District
+            <p className="opacity-90 text-lg tracking-wide">
+              📍 Parvathipuram Manyam District · Andhra Pradesh
             </p>
           </div>
         </div>
       </section>
 
       {/* ================= INFO STRIP ================= */}
-      <section className="bg-white border-b">
+      <section className="bg-white border-b shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          <div>
-            <h4 className="font-semibold">Best Time</h4>
-            <p className="text-sm text-gray-600">July – December</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">Type</h4>
-            <p className="text-sm text-gray-600">Natural Waterfall</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">District</h4>
-            <p className="text-sm text-gray-600">Parvathipuram Manyam</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">Distance</h4>
-            <p className="text-sm text-gray-600">
-              {waterfall.howToReach.distance}
-            </p>
-          </div>
+          {[
+            ["Best Time", "July – December"],
+            ["Type", "Natural Waterfall"],
+            ["District", "Parvathipuram Manyam"],
+            ["Distance", waterfall.howToReach.distance],
+          ].map(([title, value], i) => (
+            <div key={i} className="bg-gray-50 rounded-xl py-4">
+              <h4 className="font-semibold">{title}</h4>
+              <p className="text-sm text-gray-600">{value}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -114,18 +103,17 @@ const handleBookStay = () => {
         </h2>
         <div className="w-16 h-1 bg-green-700 mb-6"></div>
 
-        <p className="text-gray-600 leading-relaxed max-w-4xl mb-6">
+        <p className="text-gray-600 leading-relaxed max-w-4xl mb-8">
           {waterfall.description}
         </p>
 
         <button
-  onClick={handleBookStay}
-  className="inline-block bg-green-700 text-white px-10 py-4 rounded-xl
-    font-semibold text-lg shadow-lg hover:bg-green-800 transition"
->
-  Book Your Stay Near This Location
-</button>
-
+          onClick={handleBookStay}
+          className="bg-green-700 text-white px-10 py-4 rounded-xl
+            font-semibold text-lg shadow-lg hover:bg-green-800 transition"
+        >
+          Book Your Stay Near This Location
+        </button>
       </section>
 
       {/* ================= LOCATION ================= */}
@@ -147,6 +135,15 @@ const handleBookStay = () => {
               loading="lazy"
             />
           </div>
+
+          <a
+            href={`https://www.google.com/maps?q=${waterfall.latitude},${waterfall.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-4 text-green-700 font-semibold hover:underline"
+          >
+            📍 Open in Google Maps
+          </a>
         </div>
       </section>
 
@@ -203,7 +200,7 @@ const handleBookStay = () => {
                 alt=""
                 onClick={() => setLightboxIndex(index)}
                 className="h-44 w-full object-cover rounded-xl cursor-pointer
-                  hover:scale-105 transition shadow"
+                  hover:scale-110 transition-transform duration-300 shadow-md"
               />
             ))}
           </div>
@@ -241,14 +238,13 @@ const handleBookStay = () => {
           </span>
 
           <button
-  onClick={handleBookStay}
-  className="bg-green-700 text-white px-8 py-4 rounded-xl
-    font-semibold text-lg shadow-lg ring-4 ring-green-200
-    hover:bg-green-800 transition"
->
-  Book Your Stay
-</button>
-
+            onClick={handleBookStay}
+            className="bg-green-700 text-white px-8 py-4 rounded-xl
+              font-semibold text-lg shadow-lg ring-4 ring-green-200
+              hover:bg-green-800 transition"
+          >
+            Book Your Stay
+          </button>
         </div>
       </div>
 
