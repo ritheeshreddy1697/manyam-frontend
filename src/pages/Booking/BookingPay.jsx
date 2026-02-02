@@ -21,82 +21,96 @@ export default function BookingPay() {
       .catch(() => alert("Failed to load booking"));
   }, [bookingId]);
 
-  const payNow = async () => {
-    try {
-      setLoading(true);
+ const payNow = async () => {
+  try {
+    setLoading(true);
 
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/payment/order`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          },
-          body: JSON.stringify({ bookingId })
-        }
-      );
-
-      const order = await res.json();
-
-      if (!order.id) {
-        alert("Failed to create payment order");
-        setLoading(false);
-        return;
-      }
-
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY,
-        amount: order.amount,
-        currency: "INR",
-        name: "Manyam Tourism",
-        description: "Hotel Booking",
-        order_id: order.id,
-
-        handler: async function (response) {
-          try {
-            setVerifying(true);
-
-            const verifyRes = await fetch(
-              `${import.meta.env.VITE_API_URL}/api/payment/verify`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`
-                },
-                body: JSON.stringify({
-                  ...response,
-                  bookingId
-                })
-              }
-            );
-
-            const result = await verifyRes.json();
-
-            // 🔥 ALWAYS navigate using backend-confirmed bookingId
-            navigate(`/booking/success/${result.bookingId}`);
-          } catch {
-            alert("Payment verification failed");
-            setLoading(false);
-            setVerifying(false);
-          }
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/payment/order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         },
+        body: JSON.stringify({ bookingId })
+      }
+    );
 
-        modal: {
-          ondismiss: () => {
-            setLoading(false);
-          }
-        }
-      };
+    const order = await res.json();
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch {
-      alert("Payment initiation failed");
+    if (!order?.id) {
+      alert("Payment order failed");
       setLoading(false);
+      return;
     }
-  };
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY,
+      amount: order.amount,
+      currency: "INR",
+      name: "Manyam Tourism",
+      description: "Hotel Booking",
+      order_id: order.id,
+
+      handler: async (response) => {
+        try {
+          setVerifying(true);
+
+          const verifyRes = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/payment/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+              },
+              body: JSON.stringify({
+                ...response,
+                bookingId
+              })
+            }
+          );
+
+          const data = await verifyRes.json();
+
+          if (!verifyRes.ok) throw new Error();
+
+          navigate(`/booking/success/${data.bookingId}`);
+        } catch {
+          alert("Payment verified but UI failed. Check My Bookings.");
+          navigate("/my-bookings");
+        } finally {
+          setLoading(false);
+          setVerifying(false);
+        }
+      },
+
+      modal: {
+        ondismiss: () => {
+          setLoading(false);
+          setVerifying(false);
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+
+    // 🔴 HANDLE PAYMENT FAILURE
+    rzp.on("payment.failed", () => {
+      alert("Payment failed or cancelled");
+      setLoading(false);
+      setVerifying(false);
+    });
+
+    rzp.open();
+
+  } catch {
+    alert("Payment init error");
+    setLoading(false);
+    setVerifying(false);
+  }
+};
 
   if (!booking) {
     return <p className="p-10 text-center">Loading booking...</p>;
