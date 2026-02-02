@@ -6,7 +6,7 @@ export default function BookingSuccess() {
   const [booking, setBooking] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/booking/${bookingId}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }

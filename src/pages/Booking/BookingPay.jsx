@@ -8,7 +8,7 @@ export default function BookingPay() {
   const [booking, setBooking] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/booking/${bookingId}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }
@@ -20,7 +20,7 @@ export default function BookingPay() {
   const payNow = async () => {
     setLoading(true);
 
-    const res = await fetch("http://localhost:5000/api/payment/order", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/order`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,7 +39,7 @@ export default function BookingPay() {
       description: "Hotel Booking",
       order_id: order.id,
       handler: async function (response) {
-        await fetch("http://localhost:5000/api/payment/verify", {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/payment/verify`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

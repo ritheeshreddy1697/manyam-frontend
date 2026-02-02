@@ -17,7 +17,7 @@ export default function HotelProfile() {
   const [total, setTotal] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/hotel/profile", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/hotel/profile`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }
@@ -41,7 +41,7 @@ export default function HotelProfile() {
     formData.append("image", file);
 
     const res = await fetch(
-      "http://localhost:5000/api/hotel/upload-image",
+      `${import.meta.env.VITE_API_URL}/api/hotel/upload-image`,
       {
         method: "POST",
         headers: {
@@ -56,7 +56,7 @@ export default function HotelProfile() {
   };
 
   const saveProfile = async () => {
-    const res = await fetch("http://localhost:5000/api/hotel/profile", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/hotel/profile`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

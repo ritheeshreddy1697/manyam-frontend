@@ -6,7 +6,7 @@ export default function Booking() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/hotels")
+    fetch(`${import.meta.env.VITE_API_URL}/api/hotels`)
       .then(res => res.json())
       .then(setHotels);
   }, []);

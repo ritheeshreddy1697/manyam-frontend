@@ -4,7 +4,7 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
 
   const fetchBookings = async () => {
-    const res = await fetch("http://localhost:5000/api/bookings");
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`);
     const data = await res.json();
     setBookings(data);
   };
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
 
   const confirmBooking = async (id) => {
     await fetch(
-      `http://localhost:5000/api/bookings/admin/confirm/${id}`,
+      `${import.meta.env.VITE_API_URL}/api/bookings/admin/confirm/${id}`,
       { method: "PUT" }
     );
     fetchBookings();

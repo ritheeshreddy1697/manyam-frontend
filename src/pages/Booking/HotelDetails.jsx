@@ -19,7 +19,7 @@ export default function HotelDetails() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/hotels")
+    fetch(`${import.meta.env.VITE_API_URL}/api/hotels`)
       .then(res => res.json())
       .then(data => {
         const h = data.find(x => x._id === hotelId);
@@ -48,7 +48,7 @@ export default function HotelDetails() {
   setLoading(true);
 
   try {
-    const res = await fetch("http://localhost:5000/api/bookings", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -10,7 +10,7 @@ export default function MyBookings() {
       setDownloadingId(id);
 
       const res = await fetch(
-        `http://localhost:5000/api/booking/${id}/receipt`,
+        `${import.meta.env.VITE_API_URL}/api/booking/${id}/receipt`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -43,7 +43,7 @@ export default function MyBookings() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/my-bookings", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/my-bookings`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }

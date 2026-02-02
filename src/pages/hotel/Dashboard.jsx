@@ -28,7 +28,7 @@ function exportCSV(bookings) {
 }
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/hotel/bookings", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/hotel/bookings`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }

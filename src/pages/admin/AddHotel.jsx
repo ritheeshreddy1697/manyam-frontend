@@ -11,7 +11,7 @@ export default function AddHotel() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/admin/make-hotel", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/make-hotel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
