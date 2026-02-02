@@ -6,47 +6,23 @@ export default function BookingPay() {
   const navigate = useNavigate();
 
   const [booking, setBooking] = useState(null);
-  const [loadingBooking, setLoadingBooking] = useState(true);
-  const [paying, setPaying] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
-  // 🔹 Fetch booking
   useEffect(() => {
-    const fetchBooking = async () => {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
-            }
-          }
-        );
-
-        if (!res.ok) throw new Error("Unauthorized");
-        const data = await res.json();
-        setBooking(data);
-      } catch (err) {
-        alert("Failed to load booking");
-        navigate("/my-bookings");
-      } finally {
-        setLoadingBooking(false);
+    fetch(`${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
       }
-    };
+    })
+      .then(res => res.json())
+      .then(setBooking);
+  }, [bookingId]);
 
-    fetchBooking();
-  }, [bookingId, navigate]);
-
-  // 🔹 Payment
   const payNow = async () => {
-    if (!window.Razorpay) {
-      alert("Razorpay SDK not loaded");
-      return;
-    }
-
     try {
-      setPaying(true);
+      setLoading(true);
 
-      // 1️⃣ Create order
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/payment/order`,
         {
@@ -59,11 +35,8 @@ export default function BookingPay() {
         }
       );
 
-      if (!res.ok) throw new Error("Order creation failed");
-
       const order = await res.json();
 
-      // 2️⃣ Razorpay popup
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: order.amount,
@@ -72,80 +45,71 @@ export default function BookingPay() {
         description: "Hotel Booking",
         order_id: order.id,
 
-        handler: async (response) => {
-          try {
-            const verifyRes = await fetch(
-              `${import.meta.env.VITE_API_URL}/api/payment/verify`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`
-                },
-                body: JSON.stringify({
-                  ...response,
-                  bookingId
-                })
-              }
-            );
+        handler: async function (response) {
+          setVerifying(true);
 
-            if (!verifyRes.ok) {
-              throw new Error("Payment verification failed");
+          await fetch(
+            `${import.meta.env.VITE_API_URL}/api/payment/verify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+              },
+              body: JSON.stringify({
+                ...response,
+                bookingId
+              })
             }
+          );
 
-            navigate(`/booking/success/${bookingId}`);
-          } catch (err) {
-            alert("Payment successful but verification failed");
-          }
+          navigate(`/booking/success/${bookingId}`);
         },
 
         modal: {
           ondismiss: () => {
-            setPaying(false);
+            setLoading(false);
           }
         }
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-
     } catch (err) {
-      alert("Payment failed. Try again.");
-      setPaying(false);
+      alert("Payment initiation failed");
+      setLoading(false);
     }
   };
 
-  // 🔹 Loading states
-  if (loadingBooking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading booking details...
-      </div>
-    );
-  }
-
-  if (!booking) return null;
+  if (!booking) return <p className="p-10">Loading booking...</p>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md text-center">
+      {/* OVERLAY LOADER */}
+      {(loading || verifying) && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white px-8 py-6 rounded-xl text-center shadow-xl">
+            <div className="animate-spin h-10 w-10 border-4 border-green-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="font-semibold text-gray-700">
+              {verifying ? "Verifying payment..." : "Opening payment..."}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md text-center">
         <h1 className="text-2xl font-bold mb-4">Confirm Payment</h1>
-
-        <p className="text-gray-600 mb-2">
-          Hotel: <b>{booking.hotelId?.name}</b>
-        </p>
-
-        <p className="text-lg font-semibold mb-6">
+        <p className="mb-6 text-lg font-semibold">
           Amount: ₹{booking.amount}
         </p>
 
         <button
           onClick={payNow}
-          disabled={paying}
-          className="bg-green-700 hover:bg-green-800 disabled:bg-gray-400
-                     text-white px-6 py-3 rounded-xl w-full transition"
+          disabled={loading || verifying}
+          className="bg-green-700 text-white px-6 py-3 rounded-xl w-full
+                     disabled:bg-gray-400"
         >
-          {paying ? "Opening payment..." : "Pay Now"}
+          Pay Now
         </button>
       </div>
     </div>
