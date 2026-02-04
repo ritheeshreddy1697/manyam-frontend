@@ -3,9 +3,9 @@ import { waterfallsData } from "../../data/waterfallsData";
 
 export default function Waterfalls() {
   return (
-    <section className="pt-32 pb-20 px-6 bg-gray-50">
+    <section className="pt-20 pb-16 px-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-14">
+        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-10">
           🌊 Waterfalls in Parvathipuram Manyam
         </h1>
 

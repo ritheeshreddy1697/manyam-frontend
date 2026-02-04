@@ -18,6 +18,15 @@ export default function TempleDetails() {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const [touchStartX, setTouchStartX] = useState(null);
 
+  /* ===== SAFETY ===== */
+  if (!temple) {
+    return (
+      <div className="pt-32 text-center text-red-600 font-semibold">
+        Temple not found
+      </div>
+    );
+  }
+
   /* ===== Keyboard Controls ===== */
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -34,18 +43,10 @@ export default function TempleDetails() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxIndex, photos.length]);
 
-  if (!temple) {
-    return (
-      <div className="pt-32 text-center text-red-600 font-semibold">
-        Temple not found
-      </div>
-    );
-  }
-
   return (
     <>
       {/* ================= HERO ================= */}
-      <section className="relative h-[75vh] min-h-[520px] overflow-hidden">
+      <section className="relative h-[65vh] min-h-[480px] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center scale-110"
           style={{
@@ -57,54 +58,47 @@ export default function TempleDetails() {
 
         <div className="relative z-10 h-full flex items-center justify-center text-white text-center px-6">
           <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-3">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">
               {temple.name}
             </h1>
-            <p className="opacity-90 text-lg">
-              Parvathipuram Manyam District
+            <p className="opacity-90 text-lg tracking-wide">
+              📍 Parvathipuram Manyam District
             </p>
           </div>
         </div>
       </section>
 
       {/* ================= INFO STRIP ================= */}
-      <section className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          <div>
-            <h4 className="font-semibold">Category</h4>
-            <p className="text-sm text-gray-600">Temple</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">Best Time</h4>
-            <p className="text-sm text-gray-600">All Year</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">District</h4>
-            <p className="text-sm text-gray-600">Parvathipuram Manyam</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">Distance</h4>
-            <p className="text-sm text-gray-600">
-              {temple.howToReach.distance}
-            </p>
-          </div>
+      <section className="bg-white border-b shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          {[
+            ["Category", "Temple"],
+            ["Best Time", temple.bestTime || "All Year"],
+            ["District", "Parvathipuram Manyam"],
+            ["Distance", temple.howToReach.distance],
+          ].map(([title, value], i) => (
+            <div key={i} className="bg-gray-50 rounded-xl py-3">
+              <h4 className="font-semibold">{title}</h4>
+              <p className="text-sm text-gray-600">{value}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ================= ABOUT ================= */}
       <section
         ref={aboutRef}
-        className={`py-24 px-6 max-w-6xl mx-auto
+        className={`py-16 px-6 max-w-6xl mx-auto
           ${aboutVisible ? "scroll-show" : "scroll-hidden"}
         `}
       >
         <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
           Overview
         </span>
-        <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-3">
+        <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
           About the Temple
         </h2>
-        <div className="w-16 h-1 bg-green-700 mb-6"></div>
+        <div className="w-14 h-1 bg-green-700 mb-4"></div>
 
         <p className="text-gray-600 leading-relaxed max-w-4xl mb-6">
           {temple.description}
@@ -112,51 +106,63 @@ export default function TempleDetails() {
 
         <Link
           to="/booking"
-          className="inline-block bg-green-700 text-white px-10 py-4 rounded-xl
-            font-semibold text-lg shadow-lg hover:bg-green-800 transition"
+          className="inline-block bg-green-700 text-white px-8 py-4 rounded-xl
+            font-semibold text-lg shadow hover:bg-green-800 transition"
         >
           Book Your Stay Near This Temple
         </Link>
       </section>
 
       {/* ================= LOCATION ================= */}
-      <section className="bg-gray-50 py-24 px-6">
+      <section className="bg-gray-50 py-16 px-6">
         <div className="max-w-6xl mx-auto">
           <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
             Map
           </span>
-          <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-3">
+          <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
             Location
           </h2>
-          <div className="w-16 h-1 bg-green-700 mb-6"></div>
+          <div className="w-14 h-1 bg-green-700 mb-4"></div>
 
           <div className="rounded-2xl overflow-hidden shadow-lg">
             <iframe
               title={temple.name}
               src={`https://www.google.com/maps?q=${temple.latitude},${temple.longitude}&t=k&z=15&output=embed`}
-              className="w-full h-80"
+              className="w-full h-72"
               loading="lazy"
             />
           </div>
+
+          {/* GET DIRECTIONS */}
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${temple.latitude},${temple.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 mt-4 bg-blue-600 text-white
+              px-8 py-4 rounded-xl font-semibold text-lg
+              hover:bg-blue-700 transition shadow"
+          >
+            🧭 Get Directions
+          </a>
         </div>
       </section>
 
       {/* ================= HOW TO REACH ================= */}
       <section
         ref={reachRef}
-        className={`py-24 px-6 max-w-6xl mx-auto
+        className={`py-16 px-6 max-w-6xl mx-auto
           ${reachVisible ? "scroll-show" : "scroll-hidden"}
         `}
       >
         <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
           Travel Info
         </span>
-        <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-3">
+        <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
           How to Reach
         </h2>
-        <div className="w-16 h-1 bg-green-700 mb-10"></div>
+        <div className="w-14 h-1 bg-green-700 mb-6"></div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
             ["By Road", temple.howToReach.road],
             ["By Rail", temple.howToReach.rail],
@@ -165,9 +171,9 @@ export default function TempleDetails() {
           ].map(([title, value], i) => (
             <div
               key={i}
-              className="bg-white p-6 rounded-xl border hover:shadow-lg transition"
+              className="bg-white p-5 rounded-xl border hover:shadow-md transition"
             >
-              <h4 className="font-semibold mb-2">{title}</h4>
+              <h4 className="font-semibold mb-1">{title}</h4>
               <p className="text-sm text-gray-600">{value}</p>
             </div>
           ))}
@@ -175,18 +181,18 @@ export default function TempleDetails() {
       </section>
 
       {/* ================= PHOTOS & VIDEOS ================= */}
-      <section className="bg-gray-50 py-24 px-6">
+      <section className="bg-gray-50 py-16 px-6">
         <div className="max-w-6xl mx-auto">
           <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
             Media
           </span>
-          <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-3">
+          <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
             Photos & Videos
           </h2>
-          <div className="w-16 h-1 bg-green-700 mb-8"></div>
+          <div className="w-14 h-1 bg-green-700 mb-6"></div>
 
           {/* Photos */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-16">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
             {photos.map((img, index) => (
               <img
                 key={index}
@@ -194,7 +200,7 @@ export default function TempleDetails() {
                 alt=""
                 onClick={() => setLightboxIndex(index)}
                 className="h-44 w-full object-cover rounded-xl cursor-pointer
-                  hover:scale-105 transition shadow"
+                  hover:scale-110 transition-transform duration-300 shadow-md"
               />
             ))}
           </div>
@@ -207,7 +213,7 @@ export default function TempleDetails() {
                   <iframe
                     key={i}
                     src={v.url}
-                    className="w-full h-64 rounded-xl shadow"
+                    className="w-full h-60 rounded-xl shadow"
                     allowFullScreen
                   />
                 ) : (
@@ -215,7 +221,7 @@ export default function TempleDetails() {
                     key={i}
                     src={v.url}
                     controls
-                    className="w-full h-64 rounded-xl shadow"
+                    className="w-full h-60 rounded-xl shadow"
                   />
                 )
               )}
@@ -225,7 +231,7 @@ export default function TempleDetails() {
       </section>
 
       {/* ================= STICKY BOOK CTA ================= */}
-      <div className="sticky bottom-0 bg-white border-t shadow-xl z-50">
+      <div className="sticky bottom-0 bg-white border-t shadow-lg z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="font-semibold">
             Planning to visit {temple.name}?
@@ -233,9 +239,8 @@ export default function TempleDetails() {
 
           <Link
             to="/booking"
-            className="bg-green-700 text-white px-8 py-4 rounded-xl
-              font-semibold text-lg shadow-lg ring-4 ring-green-200
-              hover:bg-green-800 transition"
+            className="bg-green-700 text-white px-8 py-3 rounded-xl
+              font-semibold text-lg shadow hover:bg-green-800 transition"
           >
             Book Your Stay
           </Link>
