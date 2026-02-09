@@ -1,285 +1,278 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { templesData } from "../../data/templesData";
-import useScrollAnimation from "../../hooks/useScrollAnimation";
-import useParallax from "../../hooks/useParallax";
 
-export default function TempleDetails() {
-  const { slug } = useParams();
-  const temple = templesData.find((t) => t.slug === slug);
+/* ================= HERO SLIDESHOW ================= */
+function HeroSlideshow({ images, latitude, longitude, onBook }) {
+  const [index, setIndex] = useState(0);
 
-  const parallaxOffset = useParallax(0.25);
-  const [aboutRef, aboutVisible] = useScrollAnimation();
-  const [reachRef, reachVisible] = useScrollAnimation();
-
-  const photos = temple?.gallery?.photos || [];
-  const videos = temple?.gallery?.videos || [];
-
-  const [lightboxIndex, setLightboxIndex] = useState(null);
-  const [touchStartX, setTouchStartX] = useState(null);
-
-  /* ===== SAFETY ===== */
-  if (!temple) {
-    return (
-      <div className="pt-32 text-center text-red-600 font-semibold">
-        Temple not found
-      </div>
-    );
-  }
-
-  /* ===== Keyboard Controls ===== */
   useEffect(() => {
-    if (lightboxIndex === null) return;
+    if (!images || images.length <= 1) return;
 
-    const handleKey = (e) => {
-      if (e.key === "Escape") setLightboxIndex(null);
-      if (e.key === "ArrowRight")
-        setLightboxIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
-      if (e.key === "ArrowLeft")
-        setLightboxIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
-    };
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % images.length);
+    }, 4500);
 
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [lightboxIndex, photos.length]);
+    return () => clearInterval(timer);
+  }, [images]);
 
   return (
-    <>
-      {/* ================= HERO ================= */}
-      <section className="relative h-[65vh] min-h-[480px] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center scale-110"
-          style={{
-            backgroundImage: `url(${temple.image})`,
-            transform: `translateY(${parallaxOffset}px)`,
-          }}
+    <div className="relative rounded-2xl overflow-hidden shadow h-[280px] md:h-[420px]">
+      {/* SLIDES */}
+      {images.map((img, i) => (
+        <img
+          key={i}
+          src={img}
+          alt=""
+          className={`absolute inset-0 w-full h-full object-cover hero-move
+            transition-opacity duration-1000
+            ${i === index ? "opacity-100" : "opacity-0"}`}
         />
-        <div className="absolute inset-0 bg-black/50" />
+      ))}
 
-        <div className="relative z-10 h-full flex items-center justify-center text-white text-center px-6">
-          <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2">
-              {temple.name}
-            </h1>
-            <p className="opacity-90 text-lg tracking-wide">
-              📍 Parvathipuram Manyam District
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* SUBTLE BOTTOM GRADIENT */}
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
 
-      {/* ================= INFO STRIP ================= */}
-      <section className="bg-white border-b shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          {[
-            ["Category", "Temple"],
-            ["Best Time", temple.bestTime || "All Year"],
-            ["District", "Parvathipuram Manyam"],
-            ["Distance", temple.howToReach.distance],
-          ].map(([title, value], i) => (
-            <div key={i} className="bg-gray-50 rounded-xl py-3">
-              <h4 className="font-semibold">{title}</h4>
-              <p className="text-sm text-gray-600">{value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ================= ABOUT ================= */}
-      <section
-        ref={aboutRef}
-        className={`py-16 px-6 max-w-6xl mx-auto
-          ${aboutVisible ? "scroll-show" : "scroll-hidden"}
-        `}
-      >
-        <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
-          Overview
-        </span>
-        <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
-          About the Temple
-        </h2>
-        <div className="w-14 h-1 bg-green-700 mb-4"></div>
-
-        <p className="text-gray-600 leading-relaxed max-w-4xl mb-6">
-          {temple.description}
-        </p>
-
-        <Link
-          to="/booking"
-          className="inline-block bg-green-700 text-white px-8 py-4 rounded-xl
-            font-semibold text-lg shadow hover:bg-green-800 transition"
+      {/* FLOATING BUTTONS */}
+      <div className="absolute bottom-4 right-4 flex gap-3">
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="backdrop-blur-md bg-white/20 border border-white/40
+                     text-white px-5 py-2.5 rounded-full text-sm font-semibold
+                     hover:bg-white/30 transition"
         >
-          Book Your Stay Near This Temple
-        </Link>
-      </section>
+          🧭 Directions
+        </a>
 
-      {/* ================= LOCATION ================= */}
-      <section className="bg-gray-50 py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
-            Map
-          </span>
-          <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
-            Location
-          </h2>
-          <div className="w-14 h-1 bg-green-700 mb-4"></div>
-
-          <div className="rounded-2xl overflow-hidden shadow-lg">
-            <iframe
-              title={temple.name}
-              src={`https://www.google.com/maps?q=${temple.latitude},${temple.longitude}&t=k&z=15&output=embed`}
-              className="w-full h-72"
-              loading="lazy"
-            />
-          </div>
-
-          {/* GET DIRECTIONS */}
-          <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${temple.latitude},${temple.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 mt-4 bg-blue-600 text-white
-              px-8 py-4 rounded-xl font-semibold text-lg
-              hover:bg-blue-700 transition shadow"
-          >
-            🧭 Get Directions
-          </a>
-        </div>
-      </section>
-
-      {/* ================= HOW TO REACH ================= */}
-      <section
-        ref={reachRef}
-        className={`py-16 px-6 max-w-6xl mx-auto
-          ${reachVisible ? "scroll-show" : "scroll-hidden"}
-        `}
-      >
-        <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
-          Travel Info
-        </span>
-        <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
-          How to Reach
-        </h2>
-        <div className="w-14 h-1 bg-green-700 mb-6"></div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {[
-            ["By Road", temple.howToReach.road],
-            ["By Rail", temple.howToReach.rail],
-            ["By Air", temple.howToReach.air],
-            ["Distance", temple.howToReach.distance],
-          ].map(([title, value], i) => (
-            <div
-              key={i}
-              className="bg-white p-5 rounded-xl border hover:shadow-md transition"
-            >
-              <h4 className="font-semibold mb-1">{title}</h4>
-              <p className="text-sm text-gray-600">{value}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ================= PHOTOS & VIDEOS ================= */}
-      <section className="bg-gray-50 py-16 px-6">
-        <div className="max-w-6xl mx-auto">
-          <span className="text-sm uppercase tracking-wider text-green-700 font-semibold">
-            Media
-          </span>
-          <h2 className="text-2xl md:text-3xl font-bold mt-1 mb-2">
-            Photos & Videos
-          </h2>
-          <div className="w-14 h-1 bg-green-700 mb-6"></div>
-
-          {/* Photos */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
-            {photos.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt=""
-                onClick={() => setLightboxIndex(index)}
-                className="h-44 w-full object-cover rounded-xl cursor-pointer
-                  hover:scale-110 transition-transform duration-300 shadow-md"
-              />
-            ))}
-          </div>
-
-          {/* Videos */}
-          {videos.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-6">
-              {videos.map((v, i) =>
-                v.type === "youtube" ? (
-                  <iframe
-                    key={i}
-                    src={v.url}
-                    className="w-full h-60 rounded-xl shadow"
-                    allowFullScreen
-                  />
-                ) : (
-                  <video
-                    key={i}
-                    src={v.url}
-                    controls
-                    className="w-full h-60 rounded-xl shadow"
-                  />
-                )
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ================= STICKY BOOK CTA ================= */}
-      <div className="sticky bottom-0 bg-white border-t shadow-lg z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="font-semibold">
-            Planning to visit {temple.name}?
-          </span>
-
-          <Link
-            to="/booking"
-            className="bg-green-700 text-white px-8 py-3 rounded-xl
-              font-semibold text-lg shadow hover:bg-green-800 transition"
-          >
-            Book Your Stay
-          </Link>
-        </div>
+        <button
+          onClick={onBook}
+          className="backdrop-blur-md bg-green-700/60 border border-white/40
+                     text-white px-5 py-2.5 rounded-full text-sm font-semibold
+                     hover:bg-green-700/80 transition"
+        >
+          🏨 Book Stay
+        </button>
       </div>
 
-      {/* ================= LIGHTBOX ================= */}
-      {lightboxIndex !== null && (
-        <div
-          className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center px-4"
-          onClick={() => setLightboxIndex(null)}
-          onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
-          onTouchEnd={(e) => {
-            const diff = touchStartX - e.changedTouches[0].clientX;
-            if (diff > 50)
-              setLightboxIndex((i) =>
-                i === photos.length - 1 ? 0 : i + 1
-              );
-            if (diff < -50)
-              setLightboxIndex((i) =>
-                i === 0 ? photos.length - 1 : i - 1
-              );
-            setTouchStartX(null);
-          }}
-        >
+      {/* DOTS */}
+      <div className="absolute bottom-4 left-4 flex gap-2">
+        {images.map((_, i) => (
           <button
-            className="absolute top-6 right-6 text-white text-4xl"
-            onClick={() => setLightboxIndex(null)}
-          >
-            ×
-          </button>
-
-          <img
-            src={photos[lightboxIndex]}
-            className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`w-2 h-2 rounded-full
+              ${i === index ? "bg-white" : "bg-white/50"}`}
           />
-        </div>
-      )}
-    </>
+        ))}
+      </div>
+    </div>
   );
 }
+
+/* ================= MAIN PAGE ================= */
+export default function TempleDetails() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const item = templesData.find((w) => w.slug === slug);
+
+  if (!item) return <div className="pt-24 text-center">Not found</div>;
+
+  /* 🔥 FORCE HERO SLIDESHOW TO WORK */
+  const heroImages =
+    item.gallery?.photos?.length > 1
+      ? item.gallery.photos
+      : [item.image, item.image, item.image];
+
+  return (
+    <section className="pt-16 pb-20 bg-gray-50">
+      <div className="max-w-5xl mx-auto px-4 space-y-12">
+
+        {/* TITLE */}
+        <div>
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
+            {item.name}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            📍 {item.location || "Parvathipuram Manyam District"}
+          </p>
+        </div>
+
+        {/* HERO SLIDESHOW */}
+        <HeroSlideshow
+          images={heroImages}
+          latitude={item.latitude}
+          longitude={item.longitude}
+          onBook={() => navigate("/booking")}
+        />
+
+        {/* QUICK INFO */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Info label="Category" value="Waterfall" />
+          <Info label="Best Time" value="Monsoon & Winter" />
+          <Info label="Distance" value={item.howToReach?.distance} />
+          <Info label="District" value="Manyam" />
+        </div>
+
+        {/* ABOUT */}
+        <div>
+          <h2 className="text-xl font-semibold mb-2">About</h2>
+          <p className="text-gray-700 leading-relaxed">
+            {item.description}
+          </p>
+        </div>
+
+        {/* HOW TO REACH */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+          <h2 className="text-xl font-semibold mb-4">How to Reach</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <ReachCard title="🚗 By Road" value={item.howToReach?.road} />
+            <ReachCard title="🚆 By Train" value={item.howToReach?.rail} />
+            <ReachCard title="✈️ By Air" value={item.howToReach?.air} />
+            <ReachCard title="📏 Distance" value={item.howToReach?.distance} />
+          </div>
+        </div>
+
+        {/* MAP */}
+        <div className="rounded-2xl overflow-hidden shadow">
+          <iframe
+            title={item.name}
+            src={`https://www.google.com/maps?q=${item.latitude},${item.longitude}&output=embed`}
+            className="w-full h-72"
+            loading="lazy"
+          />
+        </div>
+{/* ================= CONTACT & ASSISTANCE ================= */}
+<div className="
+  relative overflow-hidden
+  rounded-2xl p-6 md:p-8
+  bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900
+  text-white shadow-2xl
+">
+
+  {/* subtle background glow */}
+  <div className="absolute -top-16 -right-16 w-48 h-48
+                  bg-green-600/20 blur-3xl rounded-full" />
+  <div className="absolute -bottom-16 -left-16 w-48 h-48
+                  bg-blue-600/20 blur-3xl rounded-full" />
+
+  <div className="relative z-10">
+    {/* Heading */}
+    <h3 className="text-xl font-semibold tracking-tight mb-2">
+      Travel Assistance & Support
+    </h3>
+
+    <p className="text-sm text-gray-300 max-w-2xl mb-6 leading-relaxed">
+      Need help with travel routes, best visiting time, accommodation,
+      or local guidance? Our tourism support team is here to assist you.
+    </p>
+
+    {/* ACTIONS */}
+    <div className="grid sm:grid-cols-2 gap-4">
+      
+      {/* CALL */}
+      <a
+        href="tel:+919999999999"
+        className="
+          group flex items-center justify-between
+          px-6 py-4 rounded-xl
+          bg-white/10 backdrop-blur-md
+          border border-white/20
+          hover:bg-white/20 hover:border-white/40
+          transition-all duration-300
+        "
+      >
+        <div>
+          <p className="text-sm font-semibold">Call Tourism Support</p>
+          <p className="text-xs text-gray-300">+91 99999 99999</p>
+        </div>
+
+        <span className="text-2xl group-hover:scale-110 transition">
+          📞
+        </span>
+      </a>
+
+      {/* EMAIL */}
+      <a
+        href="mailto:manyamtourism@gmail.com"
+        className="
+          group flex items-center justify-between
+          px-6 py-4 rounded-xl
+          bg-white/10 backdrop-blur-md
+          border border-white/20
+          hover:bg-white/20 hover:border-white/40
+          transition-all duration-300
+        "
+      >
+        <div>
+          <p className="text-sm font-semibold">Email Tourism Office</p>
+          <p className="text-xs text-gray-300">manyamtourism@gmail.com</p>
+        </div>
+
+        <span className="text-2xl group-hover:scale-110 transition">
+          ✉️
+        </span>
+      </a>
+
+    </div>
+  </div>
+</div>
+
+      </div>
+    </section>
+  );
+}
+
+/* ================= SMALL COMPONENTS ================= */
+function Info({ label, value }) {
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="font-semibold text-gray-900">{value}</p>
+    </div>
+  );
+}
+
+function ReachCard({ title, value }) {
+  return (
+    <div className="border rounded-xl p-4 hover:shadow-md transition">
+      <p className="font-semibold text-gray-900 mb-1">{title}</p>
+      <p className="text-sm text-gray-600">
+        {value || "Information available locally"}
+      </p>
+    </div>
+  );
+}
+{/* CONTACT INFO */}
+<div className="bg-gradient-to-r from-gray-900 to-gray-800
+                rounded-2xl p-6 md:p-8 text-white shadow-xl">
+
+  <h3 className="text-lg font-semibold mb-2">
+    Need help planning your visit?
+  </h3>
+
+  <p className="text-sm text-gray-300 mb-4">
+    For travel assistance, timings, or nearby stays, feel free to contact us.
+  </p>
+
+  <div className="flex flex-col sm:flex-row gap-4">
+    <a
+      href="tel:+919999999999"
+      className="flex-1 text-center px-6 py-3 rounded-xl
+                 bg-white/10 backdrop-blur border border-white/20
+                 hover:bg-white/20 transition"
+    >
+      📞 Call Support
+    </a>
+
+    <a
+      href="mailto:manyamtourism@gmail.com"
+      className="flex-1 text-center px-6 py-3 rounded-xl
+                 bg-white/10 backdrop-blur border border-white/20
+                 hover:bg-white/20 transition"
+    >
+      ✉️ Email Us
+    </a>
+  </div>
+</div>
