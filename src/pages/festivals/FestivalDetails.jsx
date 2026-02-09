@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { waterfallsData } from "../../data/waterfallsData";
+import { festivalsData } from "../../data/festivalsData";
 
 /* ================= HERO SLIDESHOW ================= */
 function HeroSlideshow({ images, latitude, longitude, onBook }) {
@@ -8,17 +8,14 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
 
   useEffect(() => {
     if (!images || images.length <= 1) return;
-
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
     }, 4500);
-
     return () => clearInterval(timer);
   }, [images]);
 
   return (
     <div className="relative rounded-2xl overflow-hidden shadow h-[280px] md:h-[420px]">
-      {/* SLIDES */}
       {images.map((img, i) => (
         <img
           key={i}
@@ -30,10 +27,8 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
         />
       ))}
 
-      {/* SUBTLE BOTTOM GRADIENT */}
       <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
 
-      {/* FLOATING BUTTONS */}
       <div className="absolute bottom-4 right-4 flex gap-3">
         <a
           href={`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`}
@@ -55,35 +50,25 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
           🏨 Book Stay
         </button>
       </div>
-
-      {/* DOTS */}
-      <div className="absolute bottom-4 left-4 flex gap-2">
-        {images.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex(i)}
-            className={`w-2 h-2 rounded-full
-              ${i === index ? "bg-white" : "bg-white/50"}`}
-          />
-        ))}
-      </div>
     </div>
   );
 }
 
 /* ================= MAIN PAGE ================= */
-export default function WaterfallDetails() {
-  const { slug } = useParams();
+export default function FestivalDetails() {
+  const { slug } = useParams();               // ✅ slug FIXED
   const navigate = useNavigate();
-  const item = waterfallsData.find((w) => w.slug === slug);
 
-  if (!item) return <div className="pt-24 text-center">Not found</div>;
+  const item = festivalsData.find((f) => f.slug === slug);
 
-  /* 🔥 FORCE HERO SLIDESHOW TO WORK */
+  if (!item) {
+    return <div className="pt-24 text-center">Festival not found</div>;
+  }
+
   const heroImages =
     item.gallery?.photos?.length > 1
       ? item.gallery.photos
-      : [item.image, item.image, item.image];
+      : [item.image, item.image];
 
   return (
     <section className="pt-16 pb-20 bg-gray-50">
@@ -99,7 +84,7 @@ export default function WaterfallDetails() {
           </p>
         </div>
 
-        {/* HERO SLIDESHOW */}
+        {/* HERO */}
         <HeroSlideshow
           images={heroImages}
           latitude={item.latitude}
@@ -109,15 +94,15 @@ export default function WaterfallDetails() {
 
         {/* QUICK INFO */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Info label="Category" value="Waterfall" />
-          <Info label="Best Time" value="Monsoon & Winter" />
-          <Info label="Distance" value={item.howToReach?.distance} />
+          <Info label="Category" value="Festival" />
+          <Info label="Festival Time" value={item.bestTime} />
+          <Info label="Location" value={item.location} />
           <Info label="District" value="Manyam" />
         </div>
 
         {/* ABOUT */}
         <div>
-          <h2 className="text-xl font-semibold mb-2">About</h2>
+          <h2 className="text-xl font-semibold mb-2">About the Festival</h2>
           <p className="text-gray-700 leading-relaxed">
             {item.description}
           </p>
@@ -143,81 +128,6 @@ export default function WaterfallDetails() {
             loading="lazy"
           />
         </div>
-{/* ================= CONTACT & ASSISTANCE ================= */}
-<div className="
-  relative overflow-hidden
-  rounded-2xl p-6 md:p-8
-  bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900
-  text-white shadow-2xl
-">
-
-  {/* subtle background glow */}
-  <div className="absolute -top-16 -right-16 w-48 h-48
-                  bg-green-600/20 blur-3xl rounded-full" />
-  <div className="absolute -bottom-16 -left-16 w-48 h-48
-                  bg-blue-600/20 blur-3xl rounded-full" />
-
-  <div className="relative z-10">
-    {/* Heading */}
-    <h3 className="text-xl font-semibold tracking-tight mb-2">
-      Travel Assistance & Support
-    </h3>
-
-    <p className="text-sm text-gray-300 max-w-2xl mb-6 leading-relaxed">
-      Need help with travel routes, best visiting time, accommodation,
-      or local guidance? Our tourism support team is here to assist you.
-    </p>
-
-    {/* ACTIONS */}
-    <div className="grid sm:grid-cols-2 gap-4">
-      
-      {/* CALL */}
-      <a
-        href="tel:+919999999999"
-        className="
-          group flex items-center justify-between
-          px-6 py-4 rounded-xl
-          bg-white/10 backdrop-blur-md
-          border border-white/20
-          hover:bg-white/20 hover:border-white/40
-          transition-all duration-300
-        "
-      >
-        <div>
-          <p className="text-sm font-semibold">Call Tourism Support</p>
-          <p className="text-xs text-gray-300">+91 99999 99999</p>
-        </div>
-
-        <span className="text-2xl group-hover:scale-110 transition">
-          📞
-        </span>
-      </a>
-
-      {/* EMAIL */}
-      <a
-        href="mailto:manyamtourism@gmail.com"
-        className="
-          group flex items-center justify-between
-          px-6 py-4 rounded-xl
-          bg-white/10 backdrop-blur-md
-          border border-white/20
-          hover:bg-white/20 hover:border-white/40
-          transition-all duration-300
-        "
-      >
-        <div>
-          <p className="text-sm font-semibold">Email Tourism Office</p>
-          <p className="text-xs text-gray-300">manyamtourism@gmail.com</p>
-        </div>
-
-        <span className="text-2xl group-hover:scale-110 transition">
-          ✉️
-        </span>
-      </a>
-
-    </div>
-  </div>
-</div>
 
       </div>
     </section>
@@ -244,35 +154,3 @@ function ReachCard({ title, value }) {
     </div>
   );
 }
-{/* CONTACT INFO */}
-<div className="bg-gradient-to-r from-gray-900 to-gray-800
-                rounded-2xl p-6 md:p-8 text-white shadow-xl">
-
-  <h3 className="text-lg font-semibold mb-2">
-    Need help planning your visit?
-  </h3>
-
-  <p className="text-sm text-gray-300 mb-4">
-    For travel assistance, timings, or nearby stays, feel free to contact us.
-  </p>
-
-  <div className="flex flex-col sm:flex-row gap-4">
-    <a
-      href="tel:+919999999999"
-      className="flex-1 text-center px-6 py-3 rounded-xl
-                 bg-white/10 backdrop-blur border border-white/20
-                 hover:bg-white/20 transition"
-    >
-      📞 Call Support
-    </a>
-
-    <a
-      href="mailto:manyamtourism@gmail.com"
-      className="flex-1 text-center px-6 py-3 rounded-xl
-                 bg-white/10 backdrop-blur border border-white/20
-                 hover:bg-white/20 transition"
-    >
-      ✉️ Email Us
-    </a>
-  </div>
-</div>

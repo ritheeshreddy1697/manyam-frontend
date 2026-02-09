@@ -1,20 +1,21 @@
 import { Link } from "react-router-dom";
-import { waterfallsData } from "../../data/waterfallsData";
+import { viewpointsData } from "../../data/viewpointsData";
 
-export default function Waterfalls() {
+export default function ViewPoints() {
   return (
-    <section className="section-top pb-16 px-6 bg-gray-50">
+    <section className="section-top pb-12 px-6 bg-gray-50">
 
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-10">
-          🌊 Waterfalls in Parvathipuram Manyam
+
+        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-14">
+          🧭 View Points in Parvathipuram Manyam
         </h1>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {waterfallsData.map((item) => (
+          {viewpointsData.map((item) => (
             <Link
               key={item.id}
-              to={`/waterfalls/${item.slug}`}
+              to={`/viewpoints/${item.slug}`}
               className="group bg-white rounded-3xl overflow-hidden
                          shadow-md hover:shadow-2xl transition-all duration-300"
             >
@@ -44,7 +45,6 @@ export default function Waterfalls() {
                   {item.shortDescription}
                 </p>
 
-                {/* FOOTER */}
                 <div className="flex items-center justify-between pt-3 text-sm">
                   <span className="text-gray-500 flex items-center gap-1">
                     📍 Manyam
@@ -58,6 +58,7 @@ export default function Waterfalls() {
             </Link>
           ))}
         </div>
+
       </div>
     </section>
   );

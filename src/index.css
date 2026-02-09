@@ -2,132 +2,159 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Scroll Animations */
+/* ===================================================
+   SCROLL REVEAL
+=================================================== */
+
 .scroll-hidden {
   opacity: 0;
-  transform: translateY(40px);
+  transform: translateY(30px);
 }
 
 .scroll-show {
   opacity: 1;
   transform: translateY(0);
-  transition: all 0.8s ease;
-}
-/* ===== HERO ANIMATIONS ===== */
-
-/* Gradient slow movement */
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  transition: all 0.7s ease;
 }
 
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradientMove 12s ease infinite;
-}
+/* ===================================================
+   TEXT / SECTION ENTRANCE
+=================================================== */
 
-/* Floating blobs */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 8s ease-in-out infinite;
-}
-
-.animate-float.delay-2000 {
-  animation-delay: 2s;
-}
-
-/* Hero text reveal */
 @keyframes heroText {
-  0% {
+  from {
     opacity: 0;
     transform: translateY(40px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
 .animate-hero-text {
-  animation: heroText 1.2s ease forwards;
+  animation: heroText 1.1s ease forwards;
 }
-/* Scroll indicator dot animation */
-@keyframes scrollDot {
-  0% {
+
+/* ===================================================
+   FADE UP (cards, sections)
+=================================================== */
+
+@keyframes fadeUp {
+  from {
     opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
     transform: translateY(0);
-  }
-  30% {
-    opacity: 1;
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(12px);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(18px);
   }
 }
 
-.animate-scroll-dot {
-  animation: scrollDot 1.8s infinite;
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out forwards;
 }
-/* Arrow bounce animation */
-@keyframes arrowBounce {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.6;
+
+/* ===================================================
+   BUTTON ANIMATIONS
+=================================================== */
+
+/* Gentle vertical float */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.btn-float {
+  animation: floatY 2.8s ease-in-out infinite;
+}
+
+/* Arrow slide */
+@keyframes slideX {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+.btn-arrow span {
+  display: inline-block;
+  animation: slideX 1.4s ease-in-out infinite;
+}
+
+/* ===================================================
+   IMAGE ANIMATIONS (NON-CONFLICTING)
+=================================================== */
+
+/* 🔹 HERO ONLY (slideshow images) */
+@keyframes heroMove {
+  0% {
+    transform: scale(1) translateY(0);
   }
   50% {
-    transform: translateY(10px);
-    opacity: 1;
+    transform: scale(1.05) translateY(-8px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
   }
 }
 
-.animate-arrow-bounce {
-  animation: arrowBounce 1.6s ease-in-out infinite;
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.hero-move {
+  animation: heroMove 18s ease-in-out infinite;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+/* 🔹 CARDS / CAROUSELS / GALLERY ONLY */
+@keyframes slowZoom {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
 }
 
-@keyframes scaleIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.img-breathe {
+  animation: slowZoom 10s ease-in-out infinite;
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-out;
+/* Desktop-only tilt */
+@media (min-width: 768px) {
+  .img-tilt-hover {
+    transition: transform 0.5s ease;
+  }
+
+  .img-tilt-hover:hover {
+    transform: scale(1.03) rotate(0.3deg);
+  }
 }
 
-.animate-slideUp {
-  animation: slideUp 0.6s ease-out;
+/* ===================================================
+   MOBILE OPTIMIZATION
+=================================================== */
+
+@media (max-width: 768px) {
+  .animate-fade-up {
+    animation-duration: 0.4s;
+  }
+
+  .btn-float {
+    animation-duration: 3.2s;
+  }
+
+  .img-breathe {
+    animation-duration: 12s;
+  }
+
+  .hero-move {
+    animation-duration: 22s;
+  }
 }
 
-.animate-scaleIn {
-  animation: scaleIn 0.5s ease-out;
-}
+/* ===================================================
+   ACCESSIBILITY (PROFESSIONAL TOUCH)
+=================================================== */
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
-
-.animate-pulse {
-  animation: pulse 1.5s ease-in-out infinite;
+.section-top {
+  padding-top: 3.5rem; /* ~pt-14 */
 }

@@ -3,11 +3,12 @@ import { festivalsData } from "../../data/festivalsData";
 
 export default function Festivals() {
   return (
-    <section className="pt-28 pb-20 px-6 bg-gray-50">
+    <section className="section-top pb-16 px-6 bg-gray-50">
+
       <div className="max-w-7xl mx-auto">
 
-        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-12">
-          Festivals of Parvathipuram Manyam
+        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-14">
+          🎉 Festivals of Parvathipuram Manyam
         </h1>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -15,17 +16,44 @@ export default function Festivals() {
             <Link
               key={item.id}
               to={`/festivals/${item.slug}`}
-              className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition"
+              className="group bg-white rounded-3xl overflow-hidden
+                         shadow-md hover:shadow-2xl transition-all duration-300"
             >
-              <img
-                src={item.image}
-                className="h-56 w-full object-cover"
-              />
-              <div className="p-5">
-                <h3 className="font-bold">{item.name}</h3>
-                <p className="text-sm text-gray-600">
+              {/* IMAGE */}
+              <div className="relative h-56 overflow-hidden">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-cover
+                             group-hover:scale-110 transition-transform duration-500"
+                />
+
+                {/* FESTIVAL BADGE */}
+                <span className="absolute top-3 left-3 bg-white/90 backdrop-blur
+                                 px-3 py-1 rounded-full text-xs font-semibold text-gray-800">
+                  🎊 Festival
+                </span>
+              </div>
+
+              {/* CONTENT */}
+              <div className="p-5 space-y-2">
+                <h3 className="font-bold text-lg text-gray-900 line-clamp-1">
+                  {item.name}
+                </h3>
+
+                <p className="text-sm text-gray-600 line-clamp-2">
                   {item.shortDescription}
                 </p>
+
+                <div className="flex items-center justify-between pt-3 text-sm">
+                  <span className="text-gray-500 flex items-center gap-1">
+                    📍 Manyam
+                  </span>
+
+                  <span className="text-green-700 font-semibold group-hover:underline">
+                    View →
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

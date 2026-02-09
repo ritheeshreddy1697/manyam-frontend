@@ -1,13 +1,12 @@
-
-
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/images/ap-logo.png";
 
 export default function Navbar() {
   const token = localStorage.getItem("token");
-const role = localStorage.getItem("role");
-const isLoggedIn = !!token && !!role;
+  const role = localStorage.getItem("role");
+  const isLoggedIn = !!token && !!role;
+
   const [scrolled, setScrolled] = useState(false);
 
   // Desktop dropdowns
@@ -26,9 +25,6 @@ const isLoggedIn = !!token && !!role;
 
   const isHome = location.pathname === "/";
   const transparentHome = isHome && !scrolled;
-
-  // Role
-  
 
   /* ===== Scroll effect ===== */
   useEffect(() => {
@@ -58,8 +54,7 @@ const isLoggedIn = !!token && !!role;
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem("role");
-    localStorage.removeItem("token");
+    localStorage.clear();
     navigate("/login");
   };
 
@@ -109,7 +104,6 @@ const isLoggedIn = !!token && !!role;
             ${transparentHome ? "text-white" : "text-gray-800"}`}
         >
           <li><Link to="/">Home</Link></li>
-         
 
           {/* Attractions */}
           <li ref={attractionsRef} className="relative">
@@ -131,80 +125,83 @@ const isLoggedIn = !!token && !!role;
                   ? "opacity-100 translate-y-0 scale-100"
                   : "opacity-0 -translate-y-2 scale-95 pointer-events-none"}`}
             >
-              <li className="px-4 py-2 hover:bg-gray-100"><Link to="/attractions">All Attractions</Link></li>
-              <li className="px-4 py-2 hover:bg-gray-100"><Link to="/attractions/temples">Temples</Link></li>
-              <li className="px-4 py-2 hover:bg-gray-100"><Link to="/attractions/waterfalls">Waterfalls</Link></li>
-              <li className="px-4 py-2 hover:bg-gray-100"><Link to="/attractions/festivals">Festivals</Link></li>
+              <li className="px-4 py-2 hover:bg-gray-100">
+                <Link to="/attractions">All Attractions</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-gray-100">
+                <Link to="/attractions/temples">Temples</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-gray-100">
+                <Link to="/attractions/waterfalls">Waterfalls</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-gray-100">
+                <Link to="/attractions/viewpoints">View Points</Link>
+              </li>
+              <li className="px-4 py-2 hover:bg-gray-100">
+                <Link to="/attractions/festivals">Festivals</Link>
+              </li>
             </ul>
           </li>
 
           <li><button onClick={handleBookStay}>Book Your Stay</button></li>
-           <li><Link to="/gallery">Gallery</Link></li>
+          <li><Link to="/gallery">Gallery</Link></li>
           <li><Link to="/contact">Contact Us</Link></li>
-          
 
+          {/* AUTH */}
+          {!isLoggedIn ? (
+            <li>
+              <Link
+                to="/login"
+                className="px-4 py-2 rounded bg-green-700 text-white"
+              >
+                Login
+              </Link>
+            </li>
+          ) : (
+            <li ref={profileRef} className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="w-10 h-10 rounded-full bg-green-700 text-white
+                  flex items-center justify-center font-bold"
+              >
+                {role.charAt(0).toUpperCase()}
+              </button>
 
-{/* AUTH SECTION */}
-{!isLoggedIn ? (
-  <li>
-    <Link
-      to="/login"
-      className="px-4 py-2 rounded bg-green-700 text-white"
-    >
-      Login
-    </Link>
-  </li>
-) : (
-  <li ref={profileRef} className="relative">
-    <button
-      onClick={() => setProfileOpen(!profileOpen)}
-      className="w-10 h-10 rounded-full bg-green-700 text-white
-        flex items-center justify-center font-bold"
-    >
-      {role.charAt(0).toUpperCase()}
-    </button>
+              {profileOpen && (
+                <div className="absolute right-0 mt-3 w-48 bg-white border rounded-xl shadow-lg">
+                  {role === "user" && (
+                    <Link to="/my-bookings" className="block px-4 py-3 hover:bg-gray-100">
+                      My Bookings
+                    </Link>
+                  )}
 
-    {profileOpen && (
-      <div className="absolute right-0 mt-3 w-48 bg-white border rounded-xl shadow-lg">
-        {role === "user" && (
-          <Link to="/my-bookings" className="block px-4 py-3 hover:bg-gray-100">
-            My Bookings
-          </Link>
-        )}
+                  {role === "hotel" && (
+                    <>
+                      <Link to="/hotel/profile" className="block px-4 py-3 hover:bg-gray-100">
+                        Hotel Profile
+                      </Link>
+                      <Link to="/hotel/dashboard" className="block px-4 py-3 hover:bg-gray-100">
+                        Dashboard
+                      </Link>
+                    </>
+                  )}
 
-        {role === "hotel" && (
-          <>
-            <Link to="/hotel/profile" className="block px-4 py-3 hover:bg-gray-100">
-              Hotel Profile
-            </Link>
-            <Link to="/hotel/dashboard" className="block px-4 py-3 hover:bg-gray-100">
-              Dashboard
-            </Link>
-          </>
-        )}
+                  {role === "admin" && (
+                    <Link to="/admin/dashboard" className="block px-4 py-3 hover:bg-gray-100">
+                      Admin Dashboard
+                    </Link>
+                  )}
 
-        {role === "admin" && (
-          <Link to="/admin/dashboard" className="block px-4 py-3 hover:bg-gray-100">
-            Admin Dashboard
-          </Link>
-        )}
-
-        <button
-          onClick={() => {
-            localStorage.clear();
-            window.location.href = "/login";
-          }}
-          className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
-        >
-          Logout
-        </button>
-      </div>
-    )}
-  </li>
-)}
-
-
-
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 text-red-600"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </li>
+          )}
         </ul>
       </div>
 
@@ -228,13 +225,14 @@ const isLoggedIn = !!token && !!role;
                 <Link to="/attractions">All Attractions</Link>
                 <Link to="/attractions/temples">Temples</Link>
                 <Link to="/attractions/waterfalls">Waterfalls</Link>
+                <Link to="/attractions/viewpoints">View Points</Link>
                 <Link to="/attractions/festivals">Festivals</Link>
               </div>
             )}
 
             <button onClick={handleBookStay}>Book Your Stay</button>
 
-            {!role ? (
+            {!isLoggedIn ? (
               <Link
                 to="/login"
                 className="bg-green-700 text-white px-4 py-2 rounded text-center"
@@ -244,8 +242,8 @@ const isLoggedIn = !!token && !!role;
             ) : (
               <>
                 {role === "user" && <Link to="/my-bookings">My Bookings</Link>}
-                {role === "admin" && <Link to="/admin/dashboard">Admin Dashboard</Link>}
                 {role === "hotel" && <Link to="/hotel/dashboard">Hotel Dashboard</Link>}
+                {role === "admin" && <Link to="/admin/dashboard">Admin Dashboard</Link>}
                 <button onClick={handleLogout} className="text-red-600 text-left">
                   Logout
                 </button>

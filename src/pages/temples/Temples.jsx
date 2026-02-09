@@ -3,7 +3,8 @@ import { templesData } from "../../data/templesData";
 
 export default function Temples() {
   return (
-    <section className="pt-20 pb-16 px-6 bg-gray-50">
+    <section className="section-top pb-16 px-6 bg-gray-50">
+
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-10">
           🛕 Temples in Parvathipuram Manyam
