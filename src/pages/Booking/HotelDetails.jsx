@@ -195,6 +195,8 @@ export default function HotelDetails() {
   // Guest info
   const [guestName, setGuestName] = useState("");
   const [phone, setPhone] = useState("");
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
 
   // Booking info
   const [roomType, setRoomType] = useState("");
@@ -481,6 +483,26 @@ export default function HotelDetails() {
       return;
     }
 
+    const normalizedGuestName = guestName.trim();
+    const normalizedPhone = phone.trim();
+    const adultsCount = Number(adults);
+    const childrenCount = Number(children);
+
+    if (!normalizedGuestName || !normalizedPhone) {
+      alert("Please enter guest name and mobile number");
+      return;
+    }
+
+    if (!Number.isInteger(adultsCount) || adultsCount < 1 || adultsCount > 2) {
+      alert("Adults per room must be 1 or 2");
+      return;
+    }
+
+    if (!Number.isInteger(childrenCount) || childrenCount < 0) {
+      alert("Children count must be 0 or more");
+      return;
+    }
+
     const selectedRoomAvailability = availabilityByType[roomType];
     if (selectedRoomAvailability && selectedRoomAvailability.available <= 0) {
       alert("Selected room is not available for these dates");
@@ -507,7 +529,11 @@ export default function HotelDetails() {
           hotelId,
           roomType,
           checkIn,
-          checkOut
+          checkOut,
+          guestName: normalizedGuestName,
+          phone: normalizedPhone,
+          adults: adultsCount,
+          children: childrenCount
         })
       });
 
@@ -647,6 +673,45 @@ export default function HotelDetails() {
             value={phone}
             onChange={e => setPhone(e.target.value)}
           />
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                Adults (Max 2)
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="2"
+                step="1"
+                className="w-full border p-2 rounded"
+                value={adults}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (Number.isNaN(value)) return;
+                  setAdults(Math.min(2, Math.max(1, Math.trunc(value))));
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                Children
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                className="w-full border p-2 rounded"
+                value={children}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (Number.isNaN(value)) return;
+                  setChildren(Math.max(0, Math.trunc(value)));
+                }}
+              />
+            </div>
+          </div>
 
           <h2 className="text-xl font-semibold mb-3">
             Booking Details

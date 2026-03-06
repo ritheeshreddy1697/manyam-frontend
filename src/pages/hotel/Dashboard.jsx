@@ -2,13 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function exportCSV(bookings) {
-  const headers = ["Booking ID", "Guest Email", "Check-in", "Check-out", "Status"];
+  const headers = [
+    "Booking ID",
+    "Guest Name",
+    "Guest Email",
+    "Phone",
+    "Adults",
+    "Children",
+    "Room Type",
+    "Check-in",
+    "Check-out",
+    "Status",
+    "Amount",
+  ];
   const rows = bookings.map((b) => [
     b._id,
+    b.guestName || "",
     b.userEmail,
+    b.phone || "",
+    Number(b.adults) || 1,
+    Number(b.children) || 0,
+    b.roomType || "",
     b.checkIn,
     b.checkOut,
     b.status,
+    Number(b.amount) || 0,
   ]);
 
   const csv = [headers, ...rows]
@@ -54,6 +72,7 @@ export default function HotelDashboard() {
   const [loading, setLoading] = useState(true);
   const [bookingFilter, setBookingFilter] = useState("current");
   const [showPastRanges, setShowPastRanges] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -290,6 +309,7 @@ export default function HotelDashboard() {
                   <th className="p-4 text-left">Check-out</th>
                   <th className="p-4 text-left">Status</th>
                   <th className="p-4 text-left">Amount</th>
+                  <th className="p-4 text-left">Action</th>
                 </tr>
               </thead>
 
@@ -303,7 +323,10 @@ export default function HotelDashboard() {
                       className="border-b border-slate-200/75 hover:bg-emerald-50/45 transition-colors"
                     >
                       <td className="p-4 font-medium text-slate-800 break-all">{b._id}</td>
-                      <td className="p-4 text-slate-700">{b.userEmail}</td>
+                      <td className="p-4 text-slate-700">
+                        <p className="font-medium text-slate-800">{b.guestName || "Guest"}</p>
+                        <p className="text-xs text-slate-500 break-all">{b.userEmail}</p>
+                      </td>
                       <td className="p-4 text-slate-700">{formatDate(b.checkIn)}</td>
                       <td className="p-4 text-slate-700">{formatDate(b.checkOut)}</td>
                       <td className="p-4">
@@ -318,6 +341,15 @@ export default function HotelDashboard() {
                         </span>
                       </td>
                       <td className="p-4 text-slate-700">{formatCurrency(b.amount)}</td>
+                      <td className="p-4">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBooking(b)}
+                          className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                        >
+                          Details
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -332,6 +364,42 @@ export default function HotelDashboard() {
           )}
         </div>
       </div>
+
+      {selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Booking Details</h3>
+                <p className="text-xs text-slate-500 break-all">{selectedBooking._id}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedBooking(null)}
+                className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <DetailItem label="Guest Name" value={selectedBooking.guestName || "-"} />
+              <DetailItem label="Guest Email" value={selectedBooking.userEmail || "-"} />
+              <DetailItem label="Phone" value={selectedBooking.phone || "-"} />
+              <DetailItem label="Room Type" value={selectedBooking.roomType || "-"} />
+              <DetailItem label="Adults" value={String(Number(selectedBooking.adults) || 1)} />
+              <DetailItem label="Children" value={String(Number(selectedBooking.children) || 0)} />
+              <DetailItem label="Check-in" value={formatDate(selectedBooking.checkIn)} />
+              <DetailItem label="Check-out" value={formatDate(selectedBooking.checkOut)} />
+              <DetailItem
+                label="Status"
+                value={String(selectedBooking.status || "pending").toUpperCase()}
+              />
+              <DetailItem label="Amount" value={formatCurrency(selectedBooking.amount)} />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -349,6 +417,15 @@ function StatCard({ title, value, tone }) {
     >
       <p className="text-slate-600 text-sm">{title}</p>
       <p className="text-2xl font-bold mt-2 text-slate-900 break-words">{value}</p>
+    </div>
+  );
+}
+
+function DetailItem({ label, value }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 break-words font-medium text-slate-800">{value}</p>
     </div>
   );
 }
