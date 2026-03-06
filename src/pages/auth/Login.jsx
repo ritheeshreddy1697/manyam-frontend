@@ -4,29 +4,88 @@ import { auth, provider } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import { buildApiUrl } from "../../utils/apiUrl";
 
+const FALLBACK_API_BASE_URLS = [
+  "https://manyam-tourism-backend-1.onrender.com",
+];
+
+const normalizeBaseUrl = (value) => {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^https?:\/\//i.test(text)) return text.replace(/\/+$/, "");
+  return `https://${text}`.replace(/\/+$/, "");
+};
+
+const formatAuthError = (err) => {
+  const code = String(err?.code || "");
+  if (code === "auth/popup-closed-by-user") return "Google sign-in was cancelled.";
+  if (code === "auth/popup-blocked") return "Popup was blocked by browser. Please allow popups and retry.";
+  if (code === "auth/unauthorized-domain") return "This domain is not authorized in Firebase Auth settings.";
+  if (code === "auth/network-request-failed") return "Network error while contacting Google/Firebase.";
+  if (code === "auth/invalid-api-key") return "Firebase API key is invalid.";
+  return err?.message || "Login failed. Please try again.";
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const finishBackendLogin = useCallback(async (user) => {
-    const token = await user.getIdToken();
-    const loginEmail = user.email?.trim().toLowerCase() || "";
+  const getLoginApiUrls = useCallback(() => {
+    const urls = [];
+    const primary = buildApiUrl("/api/auth/google");
+    if (primary) urls.push(primary);
 
-    const loginUrl = buildApiUrl("/api/auth/google");
-    if (!loginUrl) {
+    FALLBACK_API_BASE_URLS.forEach((base) => {
+      const normalized = normalizeBaseUrl(base);
+      if (!normalized) return;
+      const candidate = `${normalized}/api/auth/google`;
+      if (!urls.includes(candidate)) urls.push(candidate);
+    });
+
+    return urls;
+  }, []);
+
+  const loginToBackend = useCallback(async (firebaseToken) => {
+    const urls = getLoginApiUrls();
+    if (urls.length === 0) {
       throw new Error("Invalid API URL configuration");
     }
 
-    const res = await fetch(loginUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token })
-    });
-    const data = await res.json();
+    let lastError = "Login API request failed";
 
-    if (!res.ok || !data?.token || !data?.role) {
-      throw new Error(data?.msg || "Login failed. Please try again.");
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: firebaseToken })
+        });
+
+        const text = await res.text();
+        let data = null;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch {
+          data = null;
+        }
+
+        if (res.ok && data?.token && data?.role) {
+          return data;
+        }
+
+        const message = data?.msg || `Login API failed (${res.status})`;
+        lastError = `${message} [${url}]`;
+      } catch (error) {
+        lastError = `${error?.message || "Network request failed"} [${url}]`;
+      }
     }
+
+    throw new Error(lastError);
+  }, [getLoginApiUrls]);
+
+  const finishBackendLogin = useCallback(async (user) => {
+    const firebaseToken = await user.getIdToken();
+    const loginEmail = user.email?.trim().toLowerCase() || "";
+    const data = await loginToBackend(firebaseToken);
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role);
@@ -45,7 +104,7 @@ export default function Login() {
     } else {
       navigate("/");
     }
-  }, [navigate]);
+  }, [navigate, loginToBackend]);
 
   useEffect(() => {
     let active = true;
@@ -64,7 +123,7 @@ export default function Login() {
         await finishBackendLogin(result.user);
       } catch (err) {
         if (!active) return;
-        alert(err?.message || "Login failed. Please try again.");
+        alert(formatAuthError(err));
         setLoading(false);
       }
     };
@@ -80,8 +139,8 @@ export default function Login() {
     try {
       setLoading(true);
       await signInWithRedirect(auth, provider);
-    } catch {
-      alert("Login failed. Please try again.");
+    } catch (err) {
+      alert(formatAuthError(err));
       setLoading(false);
     }
   };
