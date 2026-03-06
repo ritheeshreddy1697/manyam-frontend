@@ -1,6 +1,6 @@
-import festival1 from "../assets/images/festival1.jpeg";
-import festival2 from "../assets/images/festival2.jpeg";
-import festival3 from "../assets/images/festival1.jpeg";
+import festival1 from "../assets/images/festivals/festival1.jpeg";
+import festival2 from "../assets/images/festivals/festival2.jpeg";
+import festival3 from "../assets/images/festivals/festival2.jpeg";
 
 export const festivalsData = [
   {

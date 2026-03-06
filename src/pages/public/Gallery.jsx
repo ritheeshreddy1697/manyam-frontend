@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 
-import gallery1 from "../../assets/images/gallery1.jpeg";
-import gallery2 from "../../assets/images/gallery2.jpeg";
-import gallery3 from "../../assets/images/gallery3.jpeg";
-import gallery4 from "../../assets/images/gallery4.jpeg";
-import gallery5 from "../../assets/images/gallery5.jpeg";
-import gallery6 from "../../assets/images/gallery6.jpeg";
-import gallery7 from "../../assets/images/gallery7.jpeg";
-import gallery8 from "../../assets/images/gallery8.jpeg";
+import gallery1 from "../../assets/images/gallery/gallery1.jpeg";
+import gallery2 from "../../assets/images/gallery/gallery2.jpeg";
+import gallery3 from "../../assets/images/gallery/gallery3.jpeg";
+import gallery4 from "../../assets/images/gallery/gallery4.jpeg";
+import gallery5 from "../../assets/images/gallery/gallery5.jpeg";
+import gallery6 from "../../assets/images/gallery/gallery6.jpeg";
+import gallery7 from "../../assets/images/gallery/gallery7.jpeg";
+import gallery8 from "../../assets/images/gallery/gallery8.jpeg";
 
 const images = [
   gallery1,

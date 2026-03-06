@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { buildApiUrl } from "../../utils/apiUrl";
 
 export default function BookingPay() {
   const { bookingId } = useParams();
@@ -11,7 +12,13 @@ export default function BookingPay() {
 
   // Fetch booking
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`, {
+    const bookingUrl = buildApiUrl(`/api/booking/${encodeURIComponent(bookingId)}`);
+    if (!bookingUrl) {
+      alert("Invalid API URL configuration");
+      return;
+    }
+
+    fetch(bookingUrl, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }
@@ -22,20 +29,24 @@ export default function BookingPay() {
   }, [bookingId]);
 
  const payNow = async () => {
-  try {
+ try {
     setLoading(true);
 
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/payment/order`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({ bookingId })
-      }
-    );
+    const orderUrl = buildApiUrl("/api/payment/order");
+    if (!orderUrl) {
+      alert("Invalid API URL configuration");
+      setLoading(false);
+      return;
+    }
+
+    const res = await fetch(orderUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({ bookingId })
+    });
 
     const order = await res.json();
 
@@ -57,20 +68,20 @@ export default function BookingPay() {
         try {
           setVerifying(true);
 
-          const verifyRes = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/payment/verify`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-              },
-              body: JSON.stringify({
-                ...response,
-                bookingId
-              })
-            }
-          );
+          const verifyUrl = buildApiUrl("/api/payment/verify");
+          if (!verifyUrl) throw new Error("Invalid API URL configuration");
+
+          const verifyRes = await fetch(verifyUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({
+              ...response,
+              bookingId
+            })
+          });
 
           const data = await verifyRes.json();
 

@@ -1,35 +1,86 @@
-import { useState } from "react";
-import { signInWithPopup } from "firebase/auth";
+import { useCallback, useEffect, useState } from "react";
+import { getRedirectResult, signInWithRedirect } from "firebase/auth";
 import { auth, provider } from "../../firebase";
 import { useNavigate } from "react-router-dom";
+import { buildApiUrl } from "../../utils/apiUrl";
 
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
+  const finishBackendLogin = useCallback(async (user) => {
+    const token = await user.getIdToken();
+    const loginEmail = user.email?.trim().toLowerCase() || "";
+
+    const loginUrl = buildApiUrl("/api/auth/google");
+    if (!loginUrl) {
+      throw new Error("Invalid API URL configuration");
+    }
+
+    const res = await fetch(loginUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token })
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data?.token || !data?.role) {
+      throw new Error(data?.msg || "Login failed. Please try again.");
+    }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        email: loginEmail,
+        role: data.role,
+      })
+    );
+
+    if (data.role === "admin") {
+      navigate("/admin/dashboard");
+    } else if (data.role === "hotel") {
+      navigate("/hotel/dashboard");
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    let active = true;
+
+    const handleRedirectResult = async () => {
+      try {
+        setLoading(true);
+        const result = await getRedirectResult(auth);
+        if (!active) return;
+
+        if (!result?.user) {
+          setLoading(false);
+          return;
+        }
+
+        await finishBackendLogin(result.user);
+      } catch (err) {
+        if (!active) return;
+        alert(err?.message || "Login failed. Please try again.");
+        setLoading(false);
+      }
+    };
+
+    handleRedirectResult();
+
+    return () => {
+      active = false;
+    };
+  }, [finishBackendLogin]);
+
   const loginWithGoogle = async () => {
     try {
       setLoading(true);
-
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/google`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token })
-        }
-      );
-
-      const data = await res.json();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-
-      navigate("/");
-    } catch (err) {
+      await signInWithRedirect(auth, provider);
+    } catch {
       alert("Login failed. Please try again.");
       setLoading(false);
     }

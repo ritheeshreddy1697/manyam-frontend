@@ -1,6 +1,6 @@
-import viewpoint1 from "../assets/images/viewpoint1.jpeg";
-import viewpoint2 from "../assets/images/viewpoint1.jpeg";
-import viewpoint3 from "../assets/images/viewpoint1.jpeg";
+import viewpoint1 from "../assets/images/viewpoints/viewpoint1.jpeg";
+import viewpoint2 from "../assets/images/viewpoints/river1.jpeg";
+import viewpoint3 from "../assets/images/viewpoints/nature1.jpeg";
 
 export const viewpointsData = [
   {

@@ -8,7 +8,23 @@ export const generateReceipt = (booking, hotel) => {
 
       doc.on("data", buffers.push.bind(buffers));
       doc.on("end", () => {
-        resolve(Buffer.concat(buffers));
+        const bufferApi = globalThis.Buffer;
+
+        if (bufferApi?.concat) {
+          resolve(bufferApi.concat(buffers));
+          return;
+        }
+
+        const totalLength = buffers.reduce((sum, chunk) => sum + chunk.length, 0);
+        const merged = new Uint8Array(totalLength);
+        let offset = 0;
+
+        buffers.forEach((chunk) => {
+          merged.set(chunk, offset);
+          offset += chunk.length;
+        });
+
+        resolve(merged);
       });
 
       doc.fontSize(22).text("Manyam Tourism", { align: "center" });

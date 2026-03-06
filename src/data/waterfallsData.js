@@ -1,16 +1,20 @@
-import waterfall1 from "../assets/images/waterfall1.jpeg";
-import waterfall2 from "../assets/images/waterfall2.jpeg";
-import waterfall3 from "../assets/images/waterfall3.jpeg";
-import waterfall4 from "../assets/images/waterfall4.jpeg";
-import waterfall5 from "../assets/images/waterfall4.jpeg";
-import waterfall6 from "../assets/images/waterfall4.jpeg";
-import waterfall7 from "../assets/images/waterfall4.jpeg";
-import waterfall8 from "../assets/images/waterfall3.jpeg";
-import waterfall9 from "../assets/images/waterfall2.jpeg";
-import waterfall10 from "../assets/images/waterfall1.jpeg";
-import waterfall11 from "../assets/images/waterfall3.jpeg";
-import waterfall12 from "../assets/images/waterfall4.jpeg";
-
+import waterfall1 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall2 from "../assets/images/waterfalls/waterfall2.jpeg";
+import waterfall3 from "../assets/images/waterfalls/waterfall3.jpeg";
+import mettududawaterfalls1 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls. 1.jpg";
+import mettududawaterfalls2 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls.2.jpg";
+import mettududawaterfalls3 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls.3.jpg";
+import mettududawaterfalls4 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls.211.jpg";
+import mettududawaterfalls5 from "../assets/images/waterfalls/Mettuguda Waterfall/mettuguda water falls.jpg";
+import waterfall4 from "../assets/images/waterfalls/waterfall4.jpeg";
+import waterfall5 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall6 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall7 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall8 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall9 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall10 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall11 from "../assets/images/waterfalls/waterfall1.jpeg";
+import waterfall12 from "../assets/images/waterfalls/waterfall1.jpeg";
 export const waterfallsData = [
   {
     id: 1,
@@ -67,7 +71,7 @@ export const waterfallsData = [
       air: "Visakhapatnam Airport – 120 km.",
       distance: "2 km from Parvathipuram",
     },
-    gallery: { photos: [waterfall3], videos: [] },
+    gallery: { photos: [mettududawaterfalls1,mettududawaterfalls2,mettududawaterfalls3,mettududawaterfalls4,mettududawaterfalls5], videos: [] },
   },
 
   {

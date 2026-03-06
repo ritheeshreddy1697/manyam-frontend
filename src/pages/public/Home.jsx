@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 import useCounter from "../../hooks/useCounter";
 import useParallax from "../../hooks/useParallax";
@@ -6,8 +7,10 @@ import useScrollAnimation from "../../hooks/useScrollAnimation";
 
 import { attractionsData } from "../../data/attractionsData";
 
-import heroImg from "../../assets/images/hero.jpeg";
-import collectorImg from "../../assets/images/collector.jpg";
+import heroImg from "../../assets/images/public/hero.jpeg";
+import collectorImg from "../../assets/images/public/collector.jpg";
+
+const _MOTION = motion;
 
 export default function Home() {
   const [aboutRef, aboutVisible] = useScrollAnimation();
@@ -20,7 +23,7 @@ export default function Home() {
   return (
     <>
       {/* ================= HERO ================= */}
-      <section className="relative h-screen overflow-hidden">
+      <section className="relative min-h-screen overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center scale-110"
           style={{
@@ -28,171 +31,198 @@ export default function Home() {
             transform: `translateY(${parallaxOffset}px)`,
           }}
         />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/75" />
+        <div className="absolute top-24 -left-20 w-72 h-72 rounded-full bg-emerald-400/25 blur-3xl" />
+        <div className="absolute bottom-14 -right-16 w-72 h-72 rounded-full bg-cyan-400/20 blur-3xl" />
 
-        <div className="relative z-10 h-full flex items-center justify-center text-white text-center px-4">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 min-h-screen flex items-center justify-center text-white text-center px-4"
+        >
+          <div className="max-w-4xl">
+            <motion.span
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08, duration: 0.6 }}
+              className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-sm"
+            >
+              Andhra Pradesh Tourism Hub
+            </motion.span>
+
+            <h1 className="display-heading mt-6 text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
               Explore the Beauty of Manyam
             </h1>
-            <p className="text-lg md:text-xl mb-8 opacity-90">
+
+            <p className="text-lg md:text-2xl mt-4 mb-10 text-white/85">
               Hills • Forests • Waterfalls • Tribal Culture
             </p>
 
             <Link
               to="/attractions"
-              className="inline-block bg-white text-green-700 px-8 py-4 rounded-full font-semibold hover:scale-105 transition"
+              className="inline-block rounded-full px-8 py-4 font-semibold btn-ghost"
             >
               Explore Attractions
             </Link>
           </div>
-        </div>
-         {/* Scroll Indicator (Arrow) */}
-<a
-  href="#about"
-  className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-white opacity-80 hover:opacity-100 transition"
->
-  <span className="text-sm mb-2 tracking-wide">
-    Scroll Down
-  </span>
+        </motion.div>
 
-  <svg
-    className="w-8 h-8 animate-arrow-bounce"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M19 9l-7 7-7-7"
-    />
-  </svg>
-</a>
+        {/* Scroll Indicator (Arrow) */}
+        <a
+          href="#about"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/90 hover:text-white transition"
+        >
+          <span className="text-sm mb-2 tracking-[0.22em] uppercase">
+            Scroll
+          </span>
 
+          <svg
+            className="w-8 h-8 animate-arrow-bounce"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </a>
       </section>
 
       {/* ================= ABOUT ================= */}
-       <section
-  id="about"
-  ref={aboutRef}
-  className={`py-24 px-6 bg-gray-50 border-t border-gray-200
-    ${aboutVisible ? "scroll-show" : "scroll-hidden"}
-  `}
->
-  <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <section
+        id="about"
+        ref={aboutRef}
+        className={`py-24 px-6 ${aboutVisible ? "scroll-show" : "scroll-hidden"}`}
+      >
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          {/* LEFT: TEXT CONTENT */}
+          <div className="lg:col-span-7 lg:pl-6">
+            <h2 className="display-heading text-3xl md:text-5xl font-bold text-emerald-800 mb-3">
+              About Parvathipuram Manyam
+            </h2>
 
-    {/* LEFT: TEXT CONTENT */}
-    <div className="lg:col-span-7 lg:pl-6">
-      <h2 className="text-3xl md:text-4xl font-bold text-green-700 mb-3">
-        About Parvathipuram Manyam
-      </h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-emerald-700 to-emerald-400 mb-6 rounded-full" />
 
-      <div className="w-16 h-1 bg-green-600 mb-6"></div>
+            <p className="text-slate-600 mb-4 leading-relaxed text-lg">
+              Parvathipuram Manyam district is one of the most scenic and
+              culturally rich regions of Andhra Pradesh. Surrounded by lush
+              green hills, waterfalls, forests, ancient temples, and vibrant
+              tribal communities, the district offers a perfect blend of nature,
+              culture, and heritage.
+            </p>
 
-      <p className="text-gray-600 mb-4 leading-relaxed">
-        Parvathipuram Manyam district is one of the most scenic and culturally
-        rich regions of Andhra Pradesh. Surrounded by lush green hills,
-        waterfalls, forests, ancient temples, and vibrant tribal communities,
-        the district offers a perfect blend of nature, culture, and heritage.
-      </p>
+            <p className="text-slate-600 mb-8 leading-relaxed text-lg">
+              Manyam is emerging as an important eco-tourism and spiritual
+              destination, attracting visitors who seek peace, adventure, and
+              cultural experiences.
+            </p>
 
-      <p className="text-gray-600 mb-8 leading-relaxed">
-        Manyam is emerging as an important eco-tourism and spiritual destination,
-        attracting visitors who seek peace, adventure, and cultural experiences.
-      </p>
+            {/* STATS */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { value: `${waterfalls}+`, label: "Waterfalls" },
+                { value: `${temples}+`, label: "Temples" },
+                { value: `${spots}+`, label: "Tourist Spots" },
+                { value: "Rich", label: "Tribal Culture" },
+              ].map((item, index) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  className="soft-panel rounded-2xl p-4 text-center"
+                >
+                  <h3 className="text-2xl font-bold text-emerald-700">
+                    {item.value}
+                  </h3>
+                  <p className="text-sm text-slate-500">{item.label}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
 
-      {/* STATS */}
-<div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-  <div>
-    <h3 className="text-2xl font-bold text-green-700">
-      {waterfalls}+
-    </h3>
-    <p className="text-sm text-gray-500">Waterfalls</p>
-  </div>
+          {/* RIGHT: COLLECTOR CARD */}
+          <div className="lg:col-span-5 flex justify-start">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="glass-panel rounded-3xl p-8 text-center max-w-md w-full"
+            >
+              <img
+                src={collectorImg}
+                alt="District Collector"
+                className="w-40 h-40 mx-auto rounded-full object-cover border-4 border-emerald-600 transition hover:scale-105"
+              />
 
-  <div>
-    <h3 className="text-2xl font-bold text-green-700">
-      {temples}+
-    </h3>
-    <p className="text-sm text-gray-500">Temples</p>
-  </div>
+              <h3 className="display-heading text-2xl font-bold mt-5">
+                District Collector
+              </h3>
 
-  <div>
-    <h3 className="text-2xl font-bold text-green-700">
-      {spots}+
-    </h3>
-    <p className="text-sm text-gray-500">Tourist Spots</p>
-  </div>
+              <p className="text-slate-600 mt-1">
+                Parvathipuram Manyam District
+              </p>
 
-  <div>
-    <h3 className="text-2xl font-bold text-green-700">
-      Rich
-    </h3>
-    <p className="text-sm text-gray-500">Tribal Culture</p>
-  </div>
-</div>
+              <p className="text-sm text-slate-500 mt-4 italic leading-relaxed">
+                “Committed to promoting sustainable tourism while preserving the
+                natural and cultural heritage of Manyam.”
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
-    </div>
-
-    {/* RIGHT: COLLECTOR CARD */}
-<div className="lg:col-span-5 flex justify-start">
-  <div className="bg-white rounded-2xl shadow-lg p-8 text-center max-w-md w-full">
-
-    <img
-      src={collectorImg}
-      alt="District Collector"
-      className="w-40 h-40 mx-auto rounded-full object-cover border-4 border-green-600 transition hover:scale-105"
-    />
-
-    <h3 className="text-xl font-bold mt-4">
-      District Collector
-    </h3>
-
-    <p className="text-gray-600">
-      Parvathipuram Manyam District
-    </p>
-
-    <p className="text-sm text-gray-500 mt-3 italic">
-      “Committed to promoting sustainable tourism while preserving
-      the natural and cultural heritage of Manyam.”
-    </p>
-  </div>
-</div>
-
-
-  </div>
-</section>
       {/* ================= ATTRACTIONS ================= */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-12">
+          <motion.h2
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45 }}
+            className="display-heading text-3xl md:text-5xl font-bold text-emerald-800 text-center mb-12"
+          >
             Top Attractions
-          </h2>
+          </motion.h2>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {attractionsData.slice(0, 4).map((item, index) => (
-              <Link
+              <motion.div
                 key={index}
-                to={item.link}
-                className="group bg-white rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: index * 0.08 }}
               >
-                <div className="h-56 overflow-hidden">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition"
-                  />
-                </div>
+                <Link
+                  to={item.link}
+                  className="group block soft-panel rounded-2xl overflow-hidden transition hover:-translate-y-1"
+                >
+                  <div className="h-56 overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                    />
+                  </div>
 
-                <div className="p-5 text-center">
-                  <h3 className="font-bold">{item.title}</h3>
-                  <span className="text-green-700 text-sm mt-2 inline-block">
-                    View Details →
-                  </span>
-                </div>
-              </Link>
+                  <div className="p-5 text-center">
+                    <h3 className="display-heading font-semibold text-slate-800">
+                      {item.title}
+                    </h3>
+                    <span className="text-emerald-700 text-sm mt-2 inline-block font-medium">
+                      View Details →
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>

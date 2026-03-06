@@ -1,6 +1,154 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-900: #0b1a12;
+  --bg-800: #10251a;
+  --surface: #ffffff;
+  --surface-soft: rgba(255, 255, 255, 0.74);
+  --line-soft: rgba(16, 37, 26, 0.08);
+  --brand-600: #0f9f5f;
+  --brand-700: #0a7a48;
+  --brand-800: #075733;
+  --text-900: #16271f;
+  --text-700: #2f443a;
+  --text-500: #5e766a;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  color: var(--text-900);
+  background:
+    radial-gradient(circle at 12% 14%, rgba(34, 197, 94, 0.22), transparent 35%),
+    radial-gradient(circle at 88% 10%, rgba(16, 185, 129, 0.18), transparent 30%),
+    radial-gradient(circle at 50% 92%, rgba(56, 189, 248, 0.12), transparent 32%),
+    linear-gradient(180deg, #f3fbf6 0%, #e8f6ed 52%, #eef8f2 100%);
+  background-attachment: fixed;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.5;
+}
+
+body::before {
+  width: 18rem;
+  height: 18rem;
+  top: -3rem;
+  right: -5rem;
+  background: rgba(22, 163, 74, 0.34);
+  animation: orbFloat 16s ease-in-out infinite;
+}
+
+body::after {
+  width: 16rem;
+  height: 16rem;
+  bottom: -4rem;
+  left: -4rem;
+  background: rgba(6, 182, 212, 0.22);
+  animation: orbFloat 20s ease-in-out infinite reverse;
+}
+
+h1,
+h2,
+h3,
+h4,
+.display-heading {
+  font-family: "Sora", "Space Grotesk", sans-serif;
+}
+
+a {
+  transition: color 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+::selection {
+  background: rgba(15, 159, 95, 0.22);
+}
+
+.glass-nav {
+  background: linear-gradient(
+    130deg,
+    rgba(11, 26, 18, 0.78),
+    rgba(16, 37, 26, 0.72) 34%,
+    rgba(12, 42, 28, 0.66) 100%
+  );
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.glass-panel {
+  background: var(--surface-soft);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  box-shadow: 0 20px 50px rgba(22, 39, 31, 0.08);
+}
+
+.soft-panel {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  box-shadow: 0 14px 35px rgba(9, 30, 20, 0.08);
+}
+
+.btn-brand {
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-800));
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(10, 122, 72, 0.34);
+}
+
+.btn-brand:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(10, 122, 72, 0.4);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--brand-700);
+  border: 1px solid rgba(15, 159, 95, 0.24);
+}
+
+.btn-ghost:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.28rem;
+  height: 2px;
+  border-radius: 9999px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms ease;
+  background: linear-gradient(90deg, #5eead4, #4ade80);
+}
+
+.nav-link:hover::after,
+.nav-link-active::after {
+  transform: scaleX(1);
+}
 
 /* ===================================================
    SCROLL REVEAL
@@ -8,13 +156,13 @@
 
 .scroll-hidden {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(26px);
 }
 
 .scroll-show {
   opacity: 1;
   transform: translateY(0);
-  transition: all 0.7s ease;
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
 /* ===================================================
@@ -53,6 +201,37 @@
 
 .animate-fade-up {
   animation: fadeUp 0.6s ease-out forwards;
+}
+
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card {
+  opacity: 0;
+  animation: cardReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease;
 }
 
 /* ===================================================
@@ -110,6 +289,28 @@
 
 .img-breathe {
   animation: slowZoom 10s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.animate-arrow-bounce {
+  animation: arrowBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes orbFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0) scale(1.08);
+  }
 }
 
 /* Desktop-only tilt */

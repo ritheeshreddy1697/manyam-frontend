@@ -1,7 +1,7 @@
-import templeImg from "../assets/images/temple1.jpeg";
-import waterfallImg from "../assets/images/waterfall1.jpeg";
-import viewpointImg from "../assets/images/viewpoint1.jpeg";
-import festivalImg from "../assets/images/tribal1.jpeg";
+import templeImg from "../assets/images/temples/temple1.jpeg";
+import waterfallImg from "../assets/images/waterfalls/waterfall1.jpeg";
+import viewpointImg from "../assets/images/viewpoints/viewpoint1.jpeg";
+import festivalImg from "../assets/images/viewpoints/tribal1.jpeg";
 
 export const attractionsData = [
   {

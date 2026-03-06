@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { buildApiUrl } from "../../utils/apiUrl";
 
 export default function BookingSuccess() {
   const { bookingId } = useParams();
@@ -11,14 +12,17 @@ export default function BookingSuccess() {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/booking/${bookingId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`
-            }
+        const bookingUrl = buildApiUrl(`/api/booking/${encodeURIComponent(bookingId)}`);
+        if (!bookingUrl) {
+          setError("Invalid API URL configuration");
+          return;
+        }
+
+        const res = await fetch(bookingUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           }
-        );
+        });
 
         if (res.status === 401 || res.status === 403) {
           setError("Unauthorized access to booking");
@@ -32,7 +36,7 @@ export default function BookingSuccess() {
 
         const data = await res.json();
         setBooking(data);
-      } catch (err) {
+      } catch {
         setError("Network error while loading booking");
       }
     };

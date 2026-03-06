@@ -1,13 +1,13 @@
 // Import all images from ONE folder
-import temple from "../assets/images/temple1.jpeg";
-import waterfall from "../assets/images/temple1.jpeg";
-import scenery from "../assets/images/temple1.jpeg";
-import tribal from "../assets/images/temple1.jpeg";
+import temple from "../assets/images/temples/temple1.jpeg";
+import waterfall from "../assets/images/waterfalls/waterfall1.jpeg";
+import scenery from "../assets/images/viewpoints/nature1.jpeg";
+import tribal from "../assets/images/viewpoints/tribal1.jpeg";
 
-import g1 from "../assets/images/temple1.jpeg";
-import g2 from "../assets/images/temple1.jpeg";
-import g3 from "../assets/images/temple1.jpeg";
-import g4 from "../assets/images/temple1.jpeg";
+import g1 from "../assets/images/gallery/gallery1.jpeg";
+import g2 from "../assets/images/gallery/gallery2.jpeg";
+import g3 from "../assets/images/gallery/gallery3.jpeg";
+import g4 from "../assets/images/gallery/gallery4.jpeg";
 
 // Top Attractions (dynamic)
 export const attractions = [

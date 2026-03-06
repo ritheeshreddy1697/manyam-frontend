@@ -29,7 +29,7 @@ export default function AddHotel() {
 
       setMessage(`✅ ${email} is now a HOTEL`);
       setEmail("");
-    } catch (err) {
+    } catch {
       setMessage("Server error");
     }
   };

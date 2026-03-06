@@ -109,7 +109,7 @@ export default function TempleDetails() {
 
         {/* QUICK INFO */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Info label="Category" value="Waterfall" />
+          <Info label="Category" value="Temple" />
           <Info label="Best Time" value="Monsoon & Winter" />
           <Info label="Distance" value={item.howToReach?.distance} />
           <Info label="District" value="Manyam" />
@@ -244,35 +244,3 @@ function ReachCard({ title, value }) {
     </div>
   );
 }
-{/* CONTACT INFO */}
-<div className="bg-gradient-to-r from-gray-900 to-gray-800
-                rounded-2xl p-6 md:p-8 text-white shadow-xl">
-
-  <h3 className="text-lg font-semibold mb-2">
-    Need help planning your visit?
-  </h3>
-
-  <p className="text-sm text-gray-300 mb-4">
-    For travel assistance, timings, or nearby stays, feel free to contact us.
-  </p>
-
-  <div className="flex flex-col sm:flex-row gap-4">
-    <a
-      href="tel:+919999999999"
-      className="flex-1 text-center px-6 py-3 rounded-xl
-                 bg-white/10 backdrop-blur border border-white/20
-                 hover:bg-white/20 transition"
-    >
-      📞 Call Support
-    </a>
-
-    <a
-      href="mailto:manyamtourism@gmail.com"
-      className="flex-1 text-center px-6 py-3 rounded-xl
-                 bg-white/10 backdrop-blur border border-white/20
-                 hover:bg-white/20 transition"
-    >
-      ✉️ Email Us
-    </a>
-  </div>
-</div>

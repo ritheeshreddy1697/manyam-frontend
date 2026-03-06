@@ -1,4 +1,4 @@
-import temple1 from "../assets/images/temple1.jpg";
+import temple1 from "../assets/images/temples/temple1.jpg";
 
 export const templesData = [
   {
