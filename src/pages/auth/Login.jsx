@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { getRedirectResult, signInWithRedirect } from "firebase/auth";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { auth, provider } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import { buildApiUrl } from "../../utils/apiUrl";
@@ -28,6 +28,8 @@ const formatAuthError = (err) => {
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const isFinishingLoginRef = useRef(false);
+  const redirectHandledRef = useRef(false);
 
   const getLoginApiUrls = useCallback(() => {
     const urls = [];
@@ -83,26 +85,32 @@ export default function Login() {
   }, [getLoginApiUrls]);
 
   const finishBackendLogin = useCallback(async (user) => {
+    if (!user || isFinishingLoginRef.current) return;
+    isFinishingLoginRef.current = true;
     const firebaseToken = await user.getIdToken();
     const loginEmail = user.email?.trim().toLowerCase() || "";
-    const data = await loginToBackend(firebaseToken);
+    try {
+      const data = await loginToBackend(firebaseToken);
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        email: loginEmail,
-        role: data.role,
-      })
-    );
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          email: loginEmail,
+          role: data.role,
+        })
+      );
 
-    if (data.role === "admin") {
-      navigate("/admin/dashboard");
-    } else if (data.role === "hotel") {
-      navigate("/hotel/dashboard");
-    } else {
-      navigate("/");
+      if (data.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (data.role === "hotel") {
+        navigate("/hotel/dashboard");
+      } else {
+        navigate("/");
+      }
+    } finally {
+      isFinishingLoginRef.current = false;
     }
   }, [navigate, loginToBackend]);
 
@@ -114,6 +122,7 @@ export default function Login() {
         setLoading(true);
         const result = await getRedirectResult(auth);
         if (!active) return;
+        redirectHandledRef.current = true;
 
         if (!result?.user) {
           setLoading(false);
@@ -123,6 +132,7 @@ export default function Login() {
         await finishBackendLogin(result.user);
       } catch (err) {
         if (!active) return;
+        redirectHandledRef.current = true;
         alert(formatAuthError(err));
         setLoading(false);
       }
@@ -135,14 +145,49 @@ export default function Login() {
     };
   }, [finishBackendLogin]);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        if (!user) return;
+        if (!redirectHandledRef.current && loading) return;
+        if (localStorage.getItem("token")) return;
+
+        setLoading(true);
+        await finishBackendLogin(user);
+      } catch (err) {
+        alert(formatAuthError(err));
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [finishBackendLogin, loading]);
+
   const loginWithGoogle = async () => {
     try {
       setLoading(true);
-      await signInWithRedirect(auth, provider);
+      const popupResult = await signInWithPopup(auth, provider);
+      await finishBackendLogin(popupResult.user);
     } catch (err) {
-      alert(formatAuthError(err));
-      setLoading(false);
+      const code = String(err?.code || "");
+      const shouldUseRedirect =
+        code === "auth/popup-blocked" ||
+        code === "auth/cancelled-popup-request" ||
+        code === "auth/operation-not-supported-in-this-environment";
+
+      if (shouldUseRedirect) {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr) {
+          alert(formatAuthError(redirectErr));
+        }
+      } else {
+        alert(formatAuthError(err));
+      }
     }
+    setLoading(false);
   };
 
   return (
