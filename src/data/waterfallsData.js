@@ -2,7 +2,7 @@ import waterfall1 from "../assets/images/waterfalls/waterfall1.jpeg";
 import waterfall2 from "../assets/images/waterfalls/waterfall2.jpeg";
 import waterfall3 from "../assets/images/waterfalls/waterfall3.jpeg";
 import mettududawaterfalls1 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls. 1.jpg";
-import mettududawaterfalls2 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls.2.jpg";
+import mettududawaterfalls2 from "../assets/images/waterfalls/Mettuguda Waterfall/mettuguda water falls.2.jpg";
 import mettududawaterfalls3 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls.3.jpg";
 import mettududawaterfalls4 from "../assets/images/waterfalls/Mettuguda Waterfall/Mettuguda water falls.211.jpg";
 import mettududawaterfalls5 from "../assets/images/waterfalls/Mettuguda Waterfall/mettuguda water falls.jpg";
