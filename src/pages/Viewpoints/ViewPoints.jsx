@@ -3,7 +3,7 @@ import { viewpointsData } from "../../data/viewpointsData";
 
 export default function ViewPoints() {
   return (
-    <section className="section-top pb-12 px-6 bg-gray-50">
+    <section className="section-top pb-12 px-6 attractions-page-bg">
 
       <div className="max-w-7xl mx-auto">
 

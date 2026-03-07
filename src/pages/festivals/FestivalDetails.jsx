@@ -71,7 +71,7 @@ export default function FestivalDetails() {
       : [item.image, item.image];
 
   return (
-    <section className="pt-16 pb-20 bg-gray-50">
+    <section className="pt-16 pb-20 attractions-page-bg">
       <div className="max-w-5xl mx-auto px-4 space-y-12">
 
         {/* TITLE */}

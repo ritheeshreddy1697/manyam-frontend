@@ -41,7 +41,7 @@ export default function Gallery() {
   }, [activeIndex]);
 
   return (
-    <section className="section-top pb-16 px-6 bg-gray-50">
+    <section className="section-top pb-16 px-6 gallery-page-bg">
       <div className="max-w-7xl mx-auto">
 
         <h1 className="text-3xl font-bold mb-4 text-green-700 text-center">

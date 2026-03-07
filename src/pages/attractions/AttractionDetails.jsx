@@ -30,7 +30,7 @@ export default function AttractionDetails({ type }) {
       : [item.image].filter(Boolean);
 
   return (
-    <section className="pt-16 pb-20 bg-gray-50">
+    <section className="pt-16 pb-20 attractions-page-bg">
       <div className="max-w-5xl mx-auto px-4 space-y-8">
         <div>
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900">

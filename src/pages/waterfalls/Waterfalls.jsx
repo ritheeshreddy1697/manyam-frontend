@@ -3,7 +3,7 @@ import { waterfallsData } from "../../data/waterfallsData";
 
 export default function Waterfalls() {
   return (
-    <section className="section-top pb-16 px-6 bg-gray-50">
+    <section className="section-top pb-16 px-6 attractions-page-bg">
 
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-10">
