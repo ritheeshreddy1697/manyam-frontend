@@ -89,7 +89,7 @@ export default function ViewPointDetails() {
       <div className="max-w-5xl mx-auto px-4 space-y-12">
 
         {/* TITLE */}
-        <div>
+        <div className="animate-fade-in">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
             {item.name}
           </h1>
@@ -107,7 +107,7 @@ export default function ViewPointDetails() {
         />
 
         {/* QUICK INFO */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: "120ms" }}>
           <Info label="Category" value="View Point" />
           <Info label="Best Time" value={item.bestTime || "All Seasons"} />
           <Info label="Distance" value={item.howToReach?.distance} />
@@ -115,13 +115,13 @@ export default function ViewPointDetails() {
         </div>
 
         {/* ABOUT */}
-        <div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "180ms" }}>
           <h2 className="text-xl font-semibold mb-2">About</h2>
           <p className="text-gray-700 leading-relaxed">{item.description}</p>
         </div>
 
         {/* HOW TO REACH */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 animate-fade-in-up" style={{ animationDelay: "240ms" }}>
           <h2 className="text-xl font-semibold mb-4">How to Reach</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <ReachCard title="🚗 By Road" value={item.howToReach?.road} />
@@ -132,7 +132,7 @@ export default function ViewPointDetails() {
         </div>
 
         {/* MAP */}
-        <div className="rounded-2xl overflow-hidden shadow">
+        <div className="rounded-2xl overflow-hidden shadow animate-fade-in-up" style={{ animationDelay: "300ms" }}>
           <iframe
             title={item.name}
             src={`https://www.google.com/maps?q=${item.latitude},${item.longitude}&output=embed`}
@@ -141,7 +141,7 @@ export default function ViewPointDetails() {
           />
         </div>
 {/* ================= ACTIONS & CONTACT ================= */}
-<div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 space-y-6">
+<div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: "360ms" }}>
 
   {/* ACTION BUTTONS */}
   <div className="grid sm:grid-cols-2 gap-4">
@@ -204,7 +204,7 @@ export default function ViewPointDetails() {
 </div>
 
         {/* GALLERY */}
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: "420ms" }}>
           <h2 className="text-xl font-semibold">Gallery</h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

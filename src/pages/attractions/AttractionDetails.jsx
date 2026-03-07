@@ -32,7 +32,7 @@ export default function AttractionDetails({ type }) {
   return (
     <section className="pt-16 pb-20 attractions-page-bg">
       <div className="max-w-5xl mx-auto px-4 space-y-8">
-        <div>
+        <div className="animate-fade-in">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
             {item.name}
           </h1>
@@ -42,7 +42,7 @@ export default function AttractionDetails({ type }) {
         </div>
 
         {heroImages[0] && (
-          <div className="rounded-2xl overflow-hidden shadow">
+          <div className="rounded-2xl overflow-hidden shadow animate-fade-in-up" style={{ animationDelay: "120ms" }}>
             <img
               src={heroImages[0]}
               alt={item.name}
@@ -51,20 +51,20 @@ export default function AttractionDetails({ type }) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: "180ms" }}>
           <Info label="Category" value={labelByType[type] || "Attraction"} />
           <Info label="Best Time" value={item.bestTime || "Year-round"} />
           <Info label="Distance" value={item.howToReach?.distance || "N/A"} />
           <Info label="District" value="Manyam" />
         </div>
 
-        <div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "240ms" }}>
           <h2 className="text-xl font-semibold mb-2">About</h2>
           <p className="text-gray-700 leading-relaxed">{item.description}</p>
         </div>
 
         {(item.latitude || item.longitude) && (
-          <div className="rounded-2xl overflow-hidden shadow">
+          <div className="rounded-2xl overflow-hidden shadow animate-fade-in-up" style={{ animationDelay: "300ms" }}>
             <iframe
               title={item.name}
               src={`https://www.google.com/maps?q=${item.latitude},${item.longitude}&output=embed`}
@@ -74,7 +74,7 @@ export default function AttractionDetails({ type }) {
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 animate-fade-in-up" style={{ animationDelay: "360ms" }}>
           <a
             href={`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`}
             target="_blank"

@@ -5,7 +5,7 @@ export default function Attractions() {
   return (
 <section className="section-top pb-16 px-6 attractions-page-bg">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-10">
+        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-10 animate-fade-in">
           🌍 Explore Attractions in Parvathipuram Manyam
         </h1>
 
@@ -19,7 +19,7 @@ export default function Attractions() {
                          shadow-md hover:shadow-2xl
                          transform hover:-translate-y-2
                          transition-all duration-300
-                         animate-fade-up"
+                         animate-fade-in-up"
             >
               {/* IMAGE */}
               <div className="relative h-60 overflow-hidden">

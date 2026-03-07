@@ -11,6 +11,8 @@ import heroImg from "../../assets/images/public/hero.jpeg";
 import collectorImg from "../../assets/images/public/collector.jpg";
 
 const _MOTION = motion;
+const DISTRICT_WHO_IS_WHO_URL =
+  "https://parvathipurammanyam.ap.gov.in/about-district/whos-who/";
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
@@ -162,13 +164,21 @@ export default function Home() {
               transition={{ duration: shouldReduceMotion ? 0 : 0.45 }}
               className="glass-panel w-full max-w-md rounded-3xl p-7 text-center md:p-8"
             >
-              <img
-                src={collectorImg}
-                alt="District Collector"
-                loading="lazy"
-                decoding="async"
-                className="mx-auto h-36 w-36 rounded-full border-4 border-emerald-600 object-cover transition hover:scale-105 md:h-40 md:w-40"
-              />
+              <a
+                href={DISTRICT_WHO_IS_WHO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open district who's who page"
+                className="inline-block"
+              >
+                <img
+                  src={collectorImg}
+                  alt="District Collector"
+                  loading="lazy"
+                  decoding="async"
+                  className="mx-auto h-36 w-36 rounded-full border-4 border-emerald-600 object-cover transition hover:scale-105 md:h-40 md:w-40"
+                />
+              </a>
 
               <h3 className="display-heading mt-5 text-2xl font-bold">
                 District Collector

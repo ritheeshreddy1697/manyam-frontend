@@ -44,11 +44,11 @@ export default function Gallery() {
     <section className="section-top pb-16 px-6 gallery-page-bg">
       <div className="max-w-7xl mx-auto">
 
-        <h1 className="text-3xl font-bold mb-4 text-green-700 text-center">
+        <h1 className="text-3xl font-bold mb-4 text-green-700 text-center animate-fade-in">
           📸 Manyam Tourism Gallery
         </h1>
 
-        <p className="text-gray-600 mb-10 text-center">
+        <p className="text-gray-600 mb-10 text-center animate-fade-in" style={{ animationDelay: "120ms" }}>
           Explore waterfalls, temples, festivals and viewpoints
         </p>
 

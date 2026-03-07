@@ -7,17 +7,19 @@ export default function ViewPoints() {
 
       <div className="max-w-7xl mx-auto">
 
-        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-14">
+        <h1 className="text-3xl md:text-4xl font-bold text-green-700 text-center mb-14 animate-fade-in">
           🧭 View Points in Parvathipuram Manyam
         </h1>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {viewpointsData.map((item) => (
+          {viewpointsData.map((item, index) => (
             <Link
               key={item.id}
               to={`/viewpoints/${item.slug}`}
               className="group bg-white rounded-3xl overflow-hidden
-                         shadow-md hover:shadow-2xl transition-all duration-300"
+                         shadow-md hover:shadow-2xl transition-all duration-300
+                         animate-fade-in-up"
+              style={{ animationDelay: `${index * 90}ms` }}
             >
               {/* IMAGE */}
               <div className="relative h-56 overflow-hidden">
