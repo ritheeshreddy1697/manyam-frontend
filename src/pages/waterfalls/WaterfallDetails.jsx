@@ -2,7 +2,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { waterfallsData } from "../../data/waterfallsData";
 import { useAttractionItemMedia } from "../../hooks/useAttractionMedia";
-import { mergeAttractionItem } from "../../utils/attractionMedia";
+import {
+  getAttractionPhotoStyle,
+  getAttractionPhotoUrl,
+  mergeAttractionItem,
+} from "../../utils/attractionMedia";
 
 /* ================= HERO SLIDESHOW ================= */
 function HeroSlideshow({ images, latitude, longitude, onBook }) {
@@ -24,8 +28,9 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
       {images.map((img, i) => (
         <img
           key={i}
-          src={img}
+          src={getAttractionPhotoUrl(img)}
           alt=""
+          style={getAttractionPhotoStyle(img)}
           className={`absolute inset-0 w-full h-full object-cover hero-move
             transition-opacity duration-1000
             ${i === index ? "opacity-100" : "opacity-0"}`}
@@ -87,7 +92,7 @@ export default function WaterfallDetails() {
   const heroImages =
     item.gallery?.photos?.length > 1
       ? item.gallery.photos
-      : [item.image, item.image, item.image];
+      : [item.coverPhoto || item.image, item.coverPhoto || item.image, item.coverPhoto || item.image].filter(Boolean);
 
   return (
     <section className="pt-16 pb-20 attractions-page-bg">

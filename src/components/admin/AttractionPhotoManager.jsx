@@ -9,7 +9,10 @@ import {
 import { buildApiUrl } from "../../utils/apiUrl";
 import {
   MAX_ATTRACTION_PHOTOS,
+  getAttractionPhotoStyle,
+  getAttractionPhotoUrl,
   mergeAttractionItem,
+  normalizeAttractionPhoto,
 } from "../../utils/attractionMedia";
 
 const getMediaKey = (category, slug) => `${category}:${slug}`;
@@ -153,17 +156,65 @@ export default function AttractionPhotoManager() {
 function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [savingPhotoId, setSavingPhotoId] = useState("");
+  const [frameDrafts, setFrameDrafts] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  useEffect(() => {
-    setSelectedFiles([]);
-    setMessage({ type: "", text: "" });
-  }, [category, item.slug]);
-
-  const currentPhotos = Array.isArray(mediaDoc?.photos) ? mediaDoc.photos : [];
+  const currentPhotos = (Array.isArray(mediaDoc?.photos) ? mediaDoc.photos : [])
+    .map(normalizeAttractionPhoto)
+    .filter(Boolean);
   const mergedItem = mergeAttractionItem(item, mediaDoc);
   const remainingSlots = Math.max(MAX_ATTRACTION_PHOTOS - currentPhotos.length, 0);
   const fileNames = selectedFiles.map((file) => file.name).join(", ");
+
+  useEffect(() => {
+    setSelectedFiles([]);
+    setSavingPhotoId("");
+    setFrameDrafts({});
+    setMessage({ type: "", text: "" });
+  }, [category, item.slug]);
+
+  useEffect(() => {
+    const nextPhotos = (Array.isArray(mediaDoc?.photos) ? mediaDoc.photos : [])
+      .map(normalizeAttractionPhoto)
+      .filter(Boolean);
+
+    setFrameDrafts(
+      nextPhotos.reduce((accumulator, photo) => {
+        accumulator[photo.publicId] = {
+          focusX: photo.focusX,
+          focusY: photo.focusY,
+        };
+        return accumulator;
+      }, {})
+    );
+  }, [mediaDoc, category, item.slug]);
+
+  const getFrameDraft = (photo) =>
+    frameDrafts[photo.publicId] || {
+      focusX: photo.focusX,
+      focusY: photo.focusY,
+    };
+
+  const hasFrameChanges = (photo) => {
+    const draft = getFrameDraft(photo);
+    return draft.focusX !== photo.focusX || draft.focusY !== photo.focusY;
+  };
+
+  const updateFrameDraft = (photo, field, value) => {
+    const numericValue = Number(value);
+
+    setFrameDrafts((current) => ({
+      ...current,
+      [photo.publicId]: {
+        ...(current[photo.publicId] || {
+          focusX: photo.focusX,
+          focusY: photo.focusY,
+        }),
+        [field]: numericValue,
+      },
+    }));
+  };
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files || []);
@@ -296,12 +347,74 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
     }
   };
 
+  const savePhotoFrame = async (photo) => {
+    const url = buildApiUrl("/api/admin/attractions/media");
+    if (!url) {
+      setMessage({ type: "error", text: "API URL is not configured." });
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setMessage({ type: "error", text: "Admin login is required." });
+      return;
+    }
+
+    try {
+      setSavingPhotoId(photo.publicId);
+      setMessage({ type: "", text: "" });
+
+      const draft = getFrameDraft(photo);
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          category,
+          slug: item.slug,
+          publicId: photo.publicId,
+          focusX: draft.focusX,
+          focusY: draft.focusY,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setMessage({
+          type: "error",
+          text: data?.msg || "Could not update the photo frame.",
+        });
+        return;
+      }
+
+      onMediaUpdated(data);
+      setMessage({ type: "success", text: "Photo frame updated successfully." });
+    } catch {
+      setMessage({ type: "error", text: "Could not update the photo frame." });
+    } finally {
+      setSavingPhotoId("");
+    }
+  };
+
+  const resetPhotoFrame = (photo) => {
+    setFrameDrafts((current) => ({
+      ...current,
+      [photo.publicId]: {
+        focusX: photo.focusX,
+        focusY: photo.focusY,
+      },
+    }));
+  };
+
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div className="relative h-52 overflow-hidden bg-slate-100">
         <img
-          src={mergedItem.image}
+          src={getAttractionPhotoUrl(mergedItem.coverPhoto || item.image)}
           alt={item.name}
+          style={getAttractionPhotoStyle(mergedItem.coverPhoto || item.image)}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent px-4 py-3">
@@ -332,33 +445,88 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
 
         <div className="space-y-2">
           <p className="text-sm font-semibold text-slate-800">Current Photos</p>
+          <p className="text-xs text-slate-500">
+            After upload, move the photo inside the crop so it sits correctly in cards and hero banners.
+          </p>
 
           {currentPhotos.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-5 text-sm text-slate-500">
               No uploaded photos yet. Static image is still visible on the site.
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3">
-              {currentPhotos.map((photo) => (
+            <div className="grid gap-4">
+              {currentPhotos.map((photo) => {
+                const frameDraft = getFrameDraft(photo);
+                const previewPhoto = {
+                  ...photo,
+                  focusX: frameDraft.focusX,
+                  focusY: frameDraft.focusY,
+                };
+
+                return (
                 <div
                   key={photo.publicId}
-                  className="relative overflow-hidden rounded-2xl border border-slate-200"
+                  className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-4"
                 >
-                  <img
-                    src={photo.url}
-                    alt={item.name}
-                    className="h-24 w-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(photo.publicId)}
-                    disabled={submitting}
-                    className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
-                  >
-                    Remove
-                  </button>
+                  <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                    <img
+                      src={getAttractionPhotoUrl(previewPhoto)}
+                      alt={item.name}
+                      style={getAttractionPhotoStyle(previewPhoto)}
+                      className="h-48 w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(photo.publicId)}
+                      disabled={submitting || savingPhotoId === photo.publicId}
+                      className="absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm font-semibold text-slate-800">Frame Position</p>
+                      <p className="text-xs text-slate-500 break-all">
+                        {photo.originalName || photo.publicId}
+                      </p>
+                    </div>
+
+                    <FrameSlider
+                      label="Horizontal"
+                      value={frameDraft.focusX}
+                      onChange={(value) => updateFrameDraft(photo, "focusX", value)}
+                    />
+                    <FrameSlider
+                      label="Vertical"
+                      value={frameDraft.focusY}
+                      onChange={(value) => updateFrameDraft(photo, "focusY", value)}
+                    />
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => savePhotoFrame(photo)}
+                        disabled={!hasFrameChanges(photo) || submitting || savingPhotoId === photo.publicId}
+                        className="rounded-xl px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {savingPhotoId === photo.publicId ? "Saving..." : "Save Frame"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => resetPhotoFrame(photo)}
+                        disabled={!hasFrameChanges(photo) || savingPhotoId === photo.publicId}
+                        className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -411,5 +579,25 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function FrameSlider({ label, value, onChange }) {
+  return (
+    <label className="block">
+      <div className="mb-1 flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full accent-slate-900"
+      />
+    </label>
   );
 }
