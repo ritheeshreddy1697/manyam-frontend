@@ -1,7 +1,14 @@
 import { Link } from "react-router-dom";
 import { templesData } from "../../data/templesData";
+import { useAttractionCategoryMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 export default function Temples() {
+  const { mediaBySlug } = useAttractionCategoryMedia("temples");
+  const items = templesData.map((item) =>
+    mergeAttractionItem(item, mediaBySlug[item.slug])
+  );
+
   return (
     <section className="section-top pb-16 px-6 attractions-page-bg">
 
@@ -11,7 +18,7 @@ export default function Temples() {
         </h1>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {templesData.map((item, index) => (
+          {items.map((item, index) => (
             <Link
               key={item.id}
               to={`/temples/${item.slug}`}

@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { viewpointsData } from "../../data/viewpointsData";
+import { useAttractionItemMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 /* ================= HERO SLIDESHOW ================= */
 function HeroSlideshow({ images, latitude, longitude, onBook }) {
@@ -73,7 +75,9 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
 export default function ViewPointDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const item = viewpointsData.find((v) => v.slug === slug);
+  const baseItem = viewpointsData.find((v) => v.slug === slug);
+  const { media } = useAttractionItemMedia("viewpoints", slug);
+  const item = mergeAttractionItem(baseItem, media);
 
   const [lightbox, setLightbox] = useState(null);
 

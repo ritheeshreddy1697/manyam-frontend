@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { waterfallsData } from "../../data/waterfallsData";
+import { useAttractionItemMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 /* ================= HERO SLIDESHOW ================= */
 function HeroSlideshow({ images, latitude, longitude, onBook }) {
@@ -75,7 +77,9 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
 export default function WaterfallDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const item = waterfallsData.find((w) => w.slug === slug);
+  const baseItem = waterfallsData.find((w) => w.slug === slug);
+  const { media } = useAttractionItemMedia("waterfalls", slug);
+  const item = mergeAttractionItem(baseItem, media);
 
   if (!item) return <div className="pt-24 text-center">Not found</div>;
 

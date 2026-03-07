@@ -1,7 +1,14 @@
 import { Link } from "react-router-dom";
 import { festivalsData } from "../../data/festivalsData";
+import { useAttractionCategoryMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 export default function Festivals() {
+  const { mediaBySlug } = useAttractionCategoryMedia("festivals");
+  const items = festivalsData.map((item) =>
+    mergeAttractionItem(item, mediaBySlug[item.slug])
+  );
+
   return (
     <section className="section-top pb-16 px-6 attractions-page-bg">
 
@@ -12,7 +19,7 @@ export default function Festivals() {
         </h1>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {festivalsData.map((item, index) => (
+          {items.map((item, index) => (
             <Link
               key={item.id}
               to={`/festivals/${item.slug}`}

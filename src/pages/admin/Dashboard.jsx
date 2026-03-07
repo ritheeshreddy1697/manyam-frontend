@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AttractionPhotoManager from "../../components/admin/AttractionPhotoManager";
 
 const getLocalISODate = (value = new Date()) => {
   const date = value instanceof Date ? value : new Date(value);
@@ -333,6 +334,8 @@ export default function AdminDashboard() {
             </div>
           </aside>
         </div>
+
+        <AttractionPhotoManager />
 
         <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">

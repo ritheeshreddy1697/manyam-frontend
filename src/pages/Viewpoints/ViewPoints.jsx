@@ -1,7 +1,14 @@
 import { Link } from "react-router-dom";
 import { viewpointsData } from "../../data/viewpointsData";
+import { useAttractionCategoryMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 export default function ViewPoints() {
+  const { mediaBySlug } = useAttractionCategoryMedia("viewpoints");
+  const items = viewpointsData.map((item) =>
+    mergeAttractionItem(item, mediaBySlug[item.slug])
+  );
+
   return (
     <section className="section-top pb-12 px-6 attractions-page-bg">
 
@@ -12,7 +19,7 @@ export default function ViewPoints() {
         </h1>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {viewpointsData.map((item, index) => (
+          {items.map((item, index) => (
             <Link
               key={item.id}
               to={`/viewpoints/${item.slug}`}

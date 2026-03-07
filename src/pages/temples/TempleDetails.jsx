@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { templesData } from "../../data/templesData";
+import { useAttractionItemMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 /* ================= HERO SLIDESHOW ================= */
 function HeroSlideshow({ images, latitude, longitude, onBook }) {
@@ -75,7 +77,9 @@ function HeroSlideshow({ images, latitude, longitude, onBook }) {
 export default function TempleDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const item = templesData.find((w) => w.slug === slug);
+  const baseItem = templesData.find((w) => w.slug === slug);
+  const { media } = useAttractionItemMedia("temples", slug);
+  const item = mergeAttractionItem(baseItem, media);
 
   if (!item) return <div className="pt-24 text-center">Not found</div>;
 

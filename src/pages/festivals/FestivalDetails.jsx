@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { festivalsData } from "../../data/festivalsData";
+import { useAttractionItemMedia } from "../../hooks/useAttractionMedia";
+import { mergeAttractionItem } from "../../utils/attractionMedia";
 
 /* ================= HERO SLIDESHOW ================= */
 function HeroSlideshow({ images, latitude, longitude, onBook }) {
@@ -59,7 +61,9 @@ export default function FestivalDetails() {
   const { slug } = useParams();               // ✅ slug FIXED
   const navigate = useNavigate();
 
-  const item = festivalsData.find((f) => f.slug === slug);
+  const baseItem = festivalsData.find((f) => f.slug === slug);
+  const { media } = useAttractionItemMedia("festivals", slug);
+  const item = mergeAttractionItem(baseItem, media);
 
   if (!item) {
     return <div className="pt-24 text-center">Festival not found</div>;
