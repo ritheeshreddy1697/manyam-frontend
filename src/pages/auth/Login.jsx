@@ -192,6 +192,7 @@ export default function Login() {
   const loginWithGoogle = async () => {
     try {
       setLoading(true);
+      provider.setCustomParameters({ prompt: "select_account" });
       const popupResult = await signInWithPopup(auth, provider);
       await finishBackendLogin(popupResult.user);
     } catch (err) {

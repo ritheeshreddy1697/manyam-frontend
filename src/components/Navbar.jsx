@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import logo from "../assets/images/public/ap-logo.png";
 
 export default function Navbar() {
@@ -66,9 +68,14 @@ export default function Navbar() {
     });
   }, [location.pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Failed to sign out from Firebase:", err);
+    }
     localStorage.clear();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   const handleBookStay = () => {
