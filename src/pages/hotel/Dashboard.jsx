@@ -202,10 +202,10 @@ export default function HotelDashboard() {
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [calendarError, setCalendarError] = useState("");
   const [selectedCalendarDate, setSelectedCalendarDate] = useState("");
-  const [editableRooms, setEditableRooms] = useState([]);
-  const [roomsSaving, setRoomsSaving] = useState(false);
-  const [roomsSaveError, setRoomsSaveError] = useState("");
-  const [roomsSaveSuccess, setRoomsSaveSuccess] = useState("");
+  const [selectedDayAvailableInput, setSelectedDayAvailableInput] = useState("");
+  const [dayUpdateSaving, setDayUpdateSaving] = useState(false);
+  const [dayUpdateError, setDayUpdateError] = useState("");
+  const [dayUpdateSuccess, setDayUpdateSuccess] = useState("");
   const [calendarReloadTick, setCalendarReloadTick] = useState(0);
 
   useEffect(() => {
@@ -274,19 +274,11 @@ export default function HotelDashboard() {
           ...data,
           rooms: normalizedRooms,
         });
-        setEditableRooms(
-          normalizedRooms.map((room) => ({
-            ...room,
-            total: Number(room.total) || 0,
-            price: Number(room.price) || 0,
-          }))
-        );
         setProfileError("");
         setCalendarRoomType((prev) => prev || normalizedRooms[0]?.type || "");
       } catch (err) {
         if (!mounted) return;
         setHotelProfile(null);
-        setEditableRooms([]);
         setProfileError(err?.message || "Failed to load hotel profile");
       }
     };
@@ -372,101 +364,6 @@ export default function HotelDashboard() {
     };
   }, [hotelId, activeCalendarRoomType, calendarMonth, calendarReloadTick]);
 
-  const hasRoomDraftChanges =
-    editableRooms.length !== hotelRooms.length ||
-    editableRooms.some((room, index) => {
-      const currentRoom = hotelRooms[index];
-      if (!currentRoom) return true;
-
-      return (
-        String(room.type || "") !== String(currentRoom.type || "") ||
-        (Number(room.total) || 0) !== (Number(currentRoom.total) || 0)
-      );
-    });
-
-  const handleRoomTotalChange = (index, value) => {
-    const normalized = value === "" ? "" : String(Math.max(0, Number(value) || 0));
-    setEditableRooms((prev) =>
-      prev.map((room, roomIndex) =>
-        roomIndex === index
-          ? {
-              ...room,
-              total: normalized,
-            }
-          : room
-      )
-    );
-    setRoomsSaveError("");
-    setRoomsSaveSuccess("");
-  };
-
-  const saveRoomAvailability = async () => {
-    if (!hotelId || editableRooms.length === 0) return;
-
-    try {
-      setRoomsSaving(true);
-      setRoomsSaveError("");
-      setRoomsSaveSuccess("");
-
-      const roomsPayload = editableRooms.map((room) => ({
-        ...room,
-        total: Math.max(0, Number(room.total) || 0),
-        price: Number(room.price) || 0,
-      }));
-
-      const profileUrl = buildApiUrl("/api/hotel/profile");
-      if (!profileUrl) throw new Error("Invalid API URL configuration");
-
-      const res = await fetch(profileUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          name: String(hotelProfile?.name || ""),
-          location: String(hotelProfile?.location || ""),
-          description: String(hotelProfile?.description || ""),
-          images: Array.isArray(hotelProfile?.images) ? hotelProfile.images : [],
-          rooms: roomsPayload,
-        }),
-      });
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch {
-        data = null;
-      }
-
-      if (!res.ok) {
-        throw new Error(data?.msg || "Failed to save room availability");
-      }
-
-      const normalizedRooms = Array.isArray(data?.rooms)
-        ? data.rooms.filter((room) => String(room?.type || "").trim())
-        : [];
-
-      setHotelProfile({
-        ...data,
-        rooms: normalizedRooms,
-      });
-      setEditableRooms(
-        normalizedRooms.map((room) => ({
-          ...room,
-          total: Number(room.total) || 0,
-          price: Number(room.price) || 0,
-        }))
-      );
-      setRoomsSaveSuccess("Rooms available updated successfully.");
-      setCalendarReloadTick((prev) => prev + 1);
-    } catch (err) {
-      setRoomsSaveError(err?.message || "Failed to save room availability");
-    } finally {
-      setRoomsSaving(false);
-    }
-  };
-
   useEffect(() => {
     if (!showPastRanges) return undefined;
 
@@ -534,6 +431,86 @@ export default function HotelDashboard() {
   const calendarCells = createCalendarCells(calendarMonth, calendarByDate);
   const selectedDayInfo = selectedCalendarDate ? calendarByDate[selectedCalendarDate] : null;
 
+  useEffect(() => {
+    if (!selectedDayInfo) {
+      setSelectedDayAvailableInput("");
+      setDayUpdateError("");
+      setDayUpdateSuccess("");
+      return;
+    }
+
+    setSelectedDayAvailableInput(String(Math.max(0, Number(selectedDayInfo.available) || 0)));
+    setDayUpdateError("");
+    setDayUpdateSuccess("");
+  }, [selectedCalendarDate, selectedDayInfo, activeCalendarRoomType]);
+
+  const saveSelectedDayAvailability = async () => {
+    if (!hotelId || !selectedDayInfo || !activeCalendarRoomType) return;
+
+    try {
+      setDayUpdateSaving(true);
+      setDayUpdateError("");
+      setDayUpdateSuccess("");
+
+      const desiredAvailable = Math.max(0, Number(selectedDayAvailableInput) || 0);
+      const bookedRooms = Math.max(0, Number(selectedDayInfo.booked) || 0);
+      const updatedTotal = desiredAvailable + bookedRooms;
+
+      const roomsPayload = hotelRooms.map((room) => {
+        if (String(room?.type || "") !== String(activeCalendarRoomType)) return room;
+        return {
+          ...room,
+          total: updatedTotal,
+          price: Number(room.price) || 0,
+        };
+      });
+
+      const profileUrl = buildApiUrl("/api/hotel/profile");
+      if (!profileUrl) throw new Error("Invalid API URL configuration");
+
+      const res = await fetch(profileUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          name: String(hotelProfile?.name || ""),
+          location: String(hotelProfile?.location || ""),
+          description: String(hotelProfile?.description || ""),
+          images: Array.isArray(hotelProfile?.images) ? hotelProfile.images : [],
+          rooms: roomsPayload,
+        }),
+      });
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.msg || "Failed to update rooms");
+      }
+
+      const normalizedRooms = Array.isArray(data?.rooms)
+        ? data.rooms.filter((room) => String(room?.type || "").trim())
+        : [];
+
+      setHotelProfile({
+        ...data,
+        rooms: normalizedRooms,
+      });
+      setDayUpdateSuccess("Availability updated.");
+      setCalendarReloadTick((prev) => prev + 1);
+    } catch (err) {
+      setDayUpdateError(err?.message || "Failed to update availability");
+    } finally {
+      setDayUpdateSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen pt-24 px-6">
@@ -581,84 +558,6 @@ export default function HotelDashboard() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-5">
           <StatCard title="Total Bookings" value={totalBookings} tone="slate" />
           <StatCard title="Total Income" value={formatCurrency(totalIncome)} tone="green" />
-        </div>
-
-        <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">
-          <div className="p-5 md:p-6 border-b border-slate-200/75 bg-white/75 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
-                Rooms Available
-              </h2>
-              <p className="text-sm text-slate-600 mt-1">
-                Edit available room count directly from dashboard.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={saveRoomAvailability}
-              disabled={!hasRoomDraftChanges || roomsSaving || editableRooms.length === 0}
-              className="rounded-full px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-green-700 shadow-md shadow-emerald-700/35 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-700/45 transition-all disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0"
-            >
-              {roomsSaving ? "Saving..." : "Save Rooms"}
-            </button>
-          </div>
-
-          <div className="p-5 md:p-6">
-            {editableRooms.length === 0 ? (
-              <p className="text-sm text-slate-600">
-                No rooms found. Add rooms in hotel profile first.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[540px] text-sm">
-                  <thead className="bg-emerald-700 text-white">
-                    <tr>
-                      <th className="p-3 text-left">Room Type</th>
-                      <th className="p-3 text-left">Price</th>
-                      <th className="p-3 text-left">Rooms Available</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white/85">
-                    {editableRooms.map((room, index) => (
-                      <tr
-                        key={`${room.type}-${index}`}
-                        className="border-b border-slate-200/75"
-                      >
-                        <td className="p-3 font-medium text-slate-800">{room.type}</td>
-                        <td className="p-3 text-slate-700">
-                          {formatCurrency(Number(room.price) || 0)}
-                        </td>
-                        <td className="p-3">
-                          <input
-                            type="number"
-                            min="0"
-                            value={room.total}
-                            onChange={(event) =>
-                              handleRoomTotalChange(index, event.target.value)
-                            }
-                            className="w-36 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {roomsSaveError && (
-              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {roomsSaveError}
-              </p>
-            )}
-
-            {roomsSaveSuccess && (
-              <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                {roomsSaveSuccess}
-              </p>
-            )}
-          </div>
         </div>
 
         <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">
@@ -830,6 +729,56 @@ export default function HotelDashboard() {
                           label="Total Rooms"
                           value={String(Number(selectedDayInfo.total) || 0)}
                         />
+
+                        <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                            Edit For Selected Date
+                          </p>
+
+                          <label className="mt-2 block text-xs text-slate-600">
+                            Rooms Available
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={selectedDayAvailableInput}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              const normalized =
+                                value === "" ? "" : String(Math.max(0, Number(value) || 0));
+                              setSelectedDayAvailableInput(normalized);
+                              setDayUpdateError("");
+                              setDayUpdateSuccess("");
+                            }}
+                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={saveSelectedDayAvailability}
+                            disabled={dayUpdateSaving}
+                            className="mt-3 w-full rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {dayUpdateSaving ? "Updating..." : "Update Availability"}
+                          </button>
+
+                          <p className="mt-2 text-[11px] text-slate-500">
+                            Booked rooms stay fixed for that date. Total room inventory is
+                            adjusted to match this availability.
+                          </p>
+                        </div>
+
+                        {dayUpdateError && (
+                          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                            {dayUpdateError}
+                          </p>
+                        )}
+
+                        {dayUpdateSuccess && (
+                          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                            {dayUpdateSuccess}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <p className="mt-3 text-sm text-slate-600">
