@@ -445,7 +445,7 @@ export default function HotelDashboard() {
   }, [selectedCalendarDate, selectedDayInfo, activeCalendarRoomType]);
 
   const saveSelectedDayAvailability = async () => {
-    if (!hotelId || !selectedDayInfo || !activeCalendarRoomType) return;
+    if (!selectedDayInfo || !activeCalendarRoomType || !selectedCalendarDate) return;
 
     try {
       setDayUpdateSaving(true);
@@ -453,33 +453,20 @@ export default function HotelDashboard() {
       setDayUpdateSuccess("");
 
       const desiredAvailable = Math.max(0, Number(selectedDayAvailableInput) || 0);
-      const bookedRooms = Math.max(0, Number(selectedDayInfo.booked) || 0);
-      const updatedTotal = desiredAvailable + bookedRooms;
 
-      const roomsPayload = hotelRooms.map((room) => {
-        if (String(room?.type || "") !== String(activeCalendarRoomType)) return room;
-        return {
-          ...room,
-          total: updatedTotal,
-          price: Number(room.price) || 0,
-        };
-      });
+      const updateUrl = buildApiUrl("/api/hotel/availability-date");
+      if (!updateUrl) throw new Error("Invalid API URL configuration");
 
-      const profileUrl = buildApiUrl("/api/hotel/profile");
-      if (!profileUrl) throw new Error("Invalid API URL configuration");
-
-      const res = await fetch(profileUrl, {
+      const res = await fetch(updateUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          name: String(hotelProfile?.name || ""),
-          location: String(hotelProfile?.location || ""),
-          description: String(hotelProfile?.description || ""),
-          images: Array.isArray(hotelProfile?.images) ? hotelProfile.images : [],
-          rooms: roomsPayload,
+          roomType: activeCalendarRoomType,
+          date: selectedCalendarDate,
+          available: desiredAvailable,
         }),
       });
 
@@ -491,17 +478,9 @@ export default function HotelDashboard() {
       }
 
       if (!res.ok) {
-        throw new Error(data?.msg || "Failed to update rooms");
+        throw new Error(data?.msg || "Failed to update availability");
       }
 
-      const normalizedRooms = Array.isArray(data?.rooms)
-        ? data.rooms.filter((room) => String(room?.type || "").trim())
-        : [];
-
-      setHotelProfile({
-        ...data,
-        rooms: normalizedRooms,
-      });
       setDayUpdateSuccess("Availability updated.");
       setCalendarReloadTick((prev) => prev + 1);
     } catch (err) {
@@ -763,8 +742,7 @@ export default function HotelDashboard() {
                           </button>
 
                           <p className="mt-2 text-[11px] text-slate-500">
-                            Booked rooms stay fixed for that date. Total room inventory is
-                            adjusted to match this availability.
+                            This update applies only to the selected date for this room type.
                           </p>
                         </div>
 
