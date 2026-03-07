@@ -691,7 +691,26 @@ export default function HotelDashboard() {
                         <p className="text-sm font-semibold text-slate-800">
                           {formatCalendarDate(selectedCalendarDate)}
                         </p>
-                        <DetailItem label="Room Type" value={activeCalendarRoomType} />
+                        <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                            Room Type
+                          </p>
+                          <select
+                            value={activeCalendarRoomType}
+                            onChange={(event) => {
+                              setCalendarRoomType(event.target.value);
+                              setDayUpdateError("");
+                              setDayUpdateSuccess("");
+                            }}
+                            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                          >
+                            {hotelRooms.map((room, index) => (
+                              <option key={`${room.type}-${index}`} value={room.type}>
+                                {room.type}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                         <DetailItem
                           label="Booking Status"
                           value={getAvailabilityLevelLabel(selectedDayInfo.level)}
