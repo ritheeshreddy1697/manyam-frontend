@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("bookings");
   const [showHotels, setShowHotels] = useState(false);
   const [showAddHotelForm, setShowAddHotelForm] = useState(false);
   const [hotelEmail, setHotelEmail] = useState("");
@@ -144,6 +145,18 @@ export default function AdminDashboard() {
     (b) => getLocalISODate(b.checkIn) === selectedDate
   );
   const peopleBooked = [...new Set(dailyBookings.map((b) => b.userEmail).filter(Boolean))];
+  const adminViews = [
+    {
+      key: "bookings",
+      label: "Bookings",
+      description: "Queue, date-wise bookings, and hotel access.",
+    },
+    {
+      key: "attractions",
+      label: "Attraction Photos",
+      description: "Open the attraction photo manager instantly.",
+    },
+  ];
 
   const getHotelNameFromBooking = (booking) => {
     if (booking.hotelId && typeof booking.hotelId === "object") {
@@ -177,13 +190,6 @@ export default function AdminDashboard() {
                 Track bookings, open hotel list, and view date-wise visitors.
               </p>
             </div>
-
-            <button
-              onClick={() => setShowHotels((prev) => !prev)}
-              className="self-start md:self-auto rounded-full px-5 py-2.5 text-sm font-semibold bg-white text-emerald-800 shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all"
-            >
-              {showHotels ? "Hide Hotels" : "Hotels"}
-            </button>
           </div>
         </div>
 
@@ -210,191 +216,254 @@ export default function AdminDashboard() {
           />
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-3">
-          {showHotels && (
-            <div className="xl:col-span-2 soft-panel rounded-3xl border border-white/60 overflow-hidden">
-              <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
-                      Hotels List
-                    </h2>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {hotels.length} hotel{hotels.length === 1 ? "" : "s"} available.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => setShowAddHotelForm((prev) => !prev)}
-                    className="self-start sm:self-auto rounded-full px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-green-700 shadow-md shadow-emerald-700/35 hover:-translate-y-0.5 transition-all"
-                  >
-                    Add Hotel
-                  </button>
-                </div>
-
-                {showAddHotelForm && (
-                  <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-                    <input
-                      type="email"
-                      value={hotelEmail}
-                      onChange={(e) => setHotelEmail(e.target.value)}
-                      placeholder="Enter email to grant hotel dashboard access"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                    />
-                    <button
-                      onClick={assignHotelRole}
-                      disabled={assigningHotelRole}
-                      className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-slate-800 hover:bg-slate-900 disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {assigningHotelRole ? "Assigning..." : "Grant Access"}
-                    </button>
-                  </div>
-                )}
-
-                {hotelAssignMessage && (
-                  <p className="mt-3 text-sm font-medium text-slate-700">
-                    {hotelAssignMessage}
-                  </p>
-                )}
-              </div>
-
-              <div className="max-h-[360px] overflow-auto bg-white/85">
-                {hotels.length === 0 ? (
-                  <p className="px-6 py-10 text-center text-slate-600">No hotels found.</p>
-                ) : (
-                  hotels.map((hotel) => (
-                    <div
-                      key={hotel._id || hotel.id}
-                      className="px-6 py-4 border-t border-slate-200/75"
-                    >
-                      <p className="font-semibold text-slate-800">{hotel.name || "Unnamed Hotel"}</p>
-                      <p className="text-sm text-slate-600">{hotel.location || "No location"}</p>
-                      <p className="text-xs text-slate-500 mt-1">{hotel.ownerEmail || "No owner email"}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          <aside
-            className={`soft-panel rounded-3xl border border-white/60 overflow-hidden ${
-              showHotels ? "xl:col-span-1" : "xl:col-span-3"
-            }`}
-          >
-            <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">
-              <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
-                Date-wise Bookings
-              </h2>
-              <p className="text-sm text-slate-600 mt-1">
-                Pick a date to see people booked on that day.
-              </p>
-            </div>
-
-            <div className="p-6 bg-white/85">
-              <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="booking-date">
-                Select Date
-              </label>
-              <input
-                id="booking-date"
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full max-w-xs rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              />
-
-              <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/55 p-4">
-                <p className="text-sm text-slate-700">
-                  Selected Date: <span className="font-semibold">{formatDate(selectedDate)}</span>
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  People Booked: <span className="font-semibold">{peopleBooked.length}</span>
-                </p>
-              </div>
-
-              <div className="mt-4 space-y-3 max-h-60 overflow-auto pr-1">
-                {dailyBookings.length === 0 ? (
-                  <p className="text-slate-600 text-sm">No bookings on this date.</p>
-                ) : (
-                  dailyBookings.map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="rounded-2xl border border-slate-200 bg-white p-3"
-                    >
-                      <p className="font-semibold text-slate-800 break-all">{booking.userEmail || "Unknown user"}</p>
-                      <p className="text-sm text-slate-600 mt-1">Hotel: {getHotelNameFromBooking(booking)}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <StatusPill status={booking.status} />
-                        <span className="text-xs text-slate-600">Amount: {formatCurrency(booking.amount)}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </aside>
-        </div>
-
-        <AttractionPhotoManager />
-
         <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">
-            <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
-              Booking Queue
-            </h2>
-            <p className="text-sm text-slate-600 mt-1">
-              Bookings are auto-confirmed after successful payment.
-            </p>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
+                  Admin Views
+                </h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Switch between booking operations and attraction photo management.
+                </p>
+              </div>
+
+              {activeView === "bookings" && (
+                <button
+                  onClick={() => setShowHotels((prev) => !prev)}
+                  className="self-start lg:self-auto rounded-full px-5 py-2.5 text-sm font-semibold bg-slate-900 text-white shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                >
+                  {showHotels ? "Hide Hotels" : "Hotels"}
+                </button>
+              )}
+            </div>
           </div>
 
-          {loading && (
-            <div className="p-6 space-y-4 bg-white/80">
-              {[1, 2, 3].map((item) => (
-                <div
-                  key={item}
-                  className="h-20 rounded-2xl bg-gradient-to-r from-slate-200/70 via-slate-100 to-slate-200/70 animate-pulse"
-                />
-              ))}
-            </div>
-          )}
-
-          {!loading && bookings.length === 0 && (
-            <div className="px-6 py-10 text-center text-slate-600 bg-white/80">
-              No bookings available right now.
-            </div>
-          )}
-
-          {!loading &&
-            bookings.map((b) => {
-              const status = String(b.status || "").toUpperCase();
+          <div className="grid gap-3 bg-white/85 p-4 md:grid-cols-2">
+            {adminViews.map((view) => {
+              const isActive = activeView === view.key;
 
               return (
-                <div
-                  key={b._id}
-                  className="px-6 py-5 border-t border-slate-200/75 bg-white/80 hover:bg-emerald-50/45 transition-colors"
+                <button
+                  key={view.key}
+                  type="button"
+                  onClick={() => setActiveView(view.key)}
+                  className={`rounded-2xl border px-5 py-4 text-left transition-all ${
+                    isActive
+                      ? "border-emerald-500 bg-gradient-to-r from-emerald-950 via-emerald-800 to-teal-700 text-white shadow-[0_16px_35px_rgba(5,46,22,0.22)]"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:-translate-y-0.5"
+                  }`}
                 >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="space-y-2">
-                      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                        Booking ID
-                      </p>
-                      <p className="font-semibold text-slate-800 break-all">{b._id}</p>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <StatusPill status={status} />
-                        <span className="text-sm font-medium text-slate-700">
-                          Amount: {formatCurrency(b.amount)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm font-medium text-slate-500">
-                      No manual action required
-                    </p>
-                  </div>
-                </div>
+                  <p
+                    className={`text-[11px] font-semibold uppercase tracking-[0.24em] ${
+                      isActive ? "text-emerald-100/90" : "text-slate-500"
+                    }`}
+                  >
+                    {view.key === "bookings" ? "Operations" : "Media"}
+                  </p>
+                  <p className="mt-2 text-lg font-semibold">{view.label}</p>
+                  <p
+                    className={`mt-2 text-sm ${
+                      isActive ? "text-emerald-50/90" : "text-slate-500"
+                    }`}
+                  >
+                    {view.description}
+                  </p>
+                </button>
               );
             })}
+          </div>
         </div>
+
+        {activeView === "bookings" ? (
+          <>
+            <div className="grid gap-6 xl:grid-cols-3">
+              {showHotels && (
+                <div className="xl:col-span-2 soft-panel rounded-3xl border border-white/60 overflow-hidden">
+                  <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
+                          Hotels List
+                        </h2>
+                        <p className="text-sm text-slate-600 mt-1">
+                          {hotels.length} hotel{hotels.length === 1 ? "" : "s"} available.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => setShowAddHotelForm((prev) => !prev)}
+                        className="self-start sm:self-auto rounded-full px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-green-700 shadow-md shadow-emerald-700/35 hover:-translate-y-0.5 transition-all"
+                      >
+                        Add Hotel
+                      </button>
+                    </div>
+
+                    {showAddHotelForm && (
+                      <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
+                        <input
+                          type="email"
+                          value={hotelEmail}
+                          onChange={(e) => setHotelEmail(e.target.value)}
+                          placeholder="Enter email to grant hotel dashboard access"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <button
+                          onClick={assignHotelRole}
+                          disabled={assigningHotelRole}
+                          className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-slate-800 hover:bg-slate-900 disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                          {assigningHotelRole ? "Assigning..." : "Grant Access"}
+                        </button>
+                      </div>
+                    )}
+
+                    {hotelAssignMessage && (
+                      <p className="mt-3 text-sm font-medium text-slate-700">
+                        {hotelAssignMessage}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="max-h-[360px] overflow-auto bg-white/85">
+                    {hotels.length === 0 ? (
+                      <p className="px-6 py-10 text-center text-slate-600">No hotels found.</p>
+                    ) : (
+                      hotels.map((hotel) => (
+                        <div
+                          key={hotel._id || hotel.id}
+                          className="px-6 py-4 border-t border-slate-200/75"
+                        >
+                          <p className="font-semibold text-slate-800">{hotel.name || "Unnamed Hotel"}</p>
+                          <p className="text-sm text-slate-600">{hotel.location || "No location"}</p>
+                          <p className="text-xs text-slate-500 mt-1">{hotel.ownerEmail || "No owner email"}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <aside
+                className={`soft-panel rounded-3xl border border-white/60 overflow-hidden ${
+                  showHotels ? "xl:col-span-1" : "xl:col-span-3"
+                }`}
+              >
+                <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">
+                  <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
+                    Date-wise Bookings
+                  </h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Pick a date to see people booked on that day.
+                  </p>
+                </div>
+
+                <div className="p-6 bg-white/85">
+                  <label className="block text-sm font-medium text-slate-700 mb-2" htmlFor="booking-date">
+                    Select Date
+                  </label>
+                  <input
+                    id="booking-date"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full max-w-xs rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+
+                  <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/55 p-4">
+                    <p className="text-sm text-slate-700">
+                      Selected Date: <span className="font-semibold">{formatDate(selectedDate)}</span>
+                    </p>
+                    <p className="mt-1 text-sm text-slate-700">
+                      People Booked: <span className="font-semibold">{peopleBooked.length}</span>
+                    </p>
+                  </div>
+
+                  <div className="mt-4 space-y-3 max-h-60 overflow-auto pr-1">
+                    {dailyBookings.length === 0 ? (
+                      <p className="text-slate-600 text-sm">No bookings on this date.</p>
+                    ) : (
+                      dailyBookings.map((booking) => (
+                        <div
+                          key={booking._id}
+                          className="rounded-2xl border border-slate-200 bg-white p-3"
+                        >
+                          <p className="font-semibold text-slate-800 break-all">{booking.userEmail || "Unknown user"}</p>
+                          <p className="text-sm text-slate-600 mt-1">Hotel: {getHotelNameFromBooking(booking)}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <StatusPill status={booking.status} />
+                            <span className="text-xs text-slate-600">Amount: {formatCurrency(booking.amount)}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </aside>
+            </div>
+
+            <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">
+              <div className="px-6 py-5 border-b border-slate-200/75 bg-white/75">
+                <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
+                  Booking Queue
+                </h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Bookings are auto-confirmed after successful payment.
+                </p>
+              </div>
+
+              {loading && (
+                <div className="p-6 space-y-4 bg-white/80">
+                  {[1, 2, 3].map((item) => (
+                    <div
+                      key={item}
+                      className="h-20 rounded-2xl bg-gradient-to-r from-slate-200/70 via-slate-100 to-slate-200/70 animate-pulse"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!loading && bookings.length === 0 && (
+                <div className="px-6 py-10 text-center text-slate-600 bg-white/80">
+                  No bookings available right now.
+                </div>
+              )}
+
+              {!loading &&
+                bookings.map((b) => {
+                  const status = String(b.status || "").toUpperCase();
+
+                  return (
+                    <div
+                      key={b._id}
+                      className="px-6 py-5 border-t border-slate-200/75 bg-white/80 hover:bg-emerald-50/45 transition-colors"
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="space-y-2">
+                          <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                            Booking ID
+                          </p>
+                          <p className="font-semibold text-slate-800 break-all">{b._id}</p>
+                          <div className="flex flex-wrap items-center gap-3">
+                            <StatusPill status={status} />
+                            <span className="text-sm font-medium text-slate-700">
+                              Amount: {formatCurrency(b.amount)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-sm font-medium text-slate-500">
+                          No manual action required
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </>
+        ) : (
+          <AttractionPhotoManager />
+        )}
       </div>
     </section>
   );
