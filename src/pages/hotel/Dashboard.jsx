@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { buildApiUrl } from "../../utils/apiUrl";
 
 function exportCSV(bookings) {
   const headers = [
@@ -64,6 +65,126 @@ const formatCurrency = (value) =>
     maximumFractionDigits: 0,
   }).format(Number(value) || 0);
 
+const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const getMonthKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+const getDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+
+const shiftMonth = (monthKey, step) => {
+  const [yearText, monthText] = String(monthKey || "").split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  if (!Number.isInteger(year) || !Number.isInteger(month)) return getMonthKey(new Date());
+
+  const shifted = new Date(year, month - 1 + step, 1);
+  return getMonthKey(shifted);
+};
+
+const getMonthLabel = (monthKey) => {
+  const [yearText, monthText] = String(monthKey || "").split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    return monthKey;
+  }
+
+  return `${MONTH_NAMES[month - 1]} ${year}`;
+};
+
+const parseDateText = (dateText) => {
+  const [yearText, monthText, dayText] = String(dateText || "").split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return null;
+  }
+
+  return new Date(year, month - 1, day);
+};
+
+const formatCalendarDate = (dateText) => {
+  const parsed = parseDateText(dateText);
+  if (!parsed) return dateText;
+
+  return parsed.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const createCalendarCells = (monthKey, dayMap) => {
+  const [yearText, monthText] = String(monthKey || "").split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    return [];
+  }
+
+  const firstWeekDay = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const cells = [];
+
+  for (let index = 0; index < firstWeekDay; index += 1) {
+    cells.push(null);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = `${monthKey}-${String(day).padStart(2, "0")}`;
+    cells.push({
+      date,
+      day,
+      info: dayMap[date] || null,
+    });
+  }
+
+  while (cells.length % 7 !== 0) {
+    cells.push(null);
+  }
+
+  return cells;
+};
+
+const getAvailabilityLevelLabel = (level) => {
+  if (level === "full") return "Sold Out";
+  if (level === "fast") return "Filling Fast";
+  return "Available";
+};
+
+const getCalendarCellTone = (level) => {
+  if (level === "full") {
+    return "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
+  }
+  if (level === "fast") {
+    return "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100";
+  }
+  if (level === "available") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100";
+  }
+  return "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
+};
+
 export default function HotelDashboard() {
   const navigate = useNavigate();
   const pastMenuRef = useRef(null);
@@ -73,6 +194,14 @@ export default function HotelDashboard() {
   const [bookingFilter, setBookingFilter] = useState("current");
   const [showPastRanges, setShowPastRanges] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [hotelProfile, setHotelProfile] = useState(null);
+  const [profileError, setProfileError] = useState("");
+  const [calendarMonth, setCalendarMonth] = useState(getMonthKey(new Date()));
+  const [calendarRoomType, setCalendarRoomType] = useState("");
+  const [calendarByDate, setCalendarByDate] = useState({});
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [calendarError, setCalendarError] = useState("");
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -112,6 +241,123 @@ export default function HotelDashboard() {
       clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchHotelProfile = async () => {
+      try {
+        const profileUrl = buildApiUrl("/api/hotel/profile");
+        if (!profileUrl) throw new Error("Invalid API URL configuration");
+
+        const res = await fetch(profileUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          cache: "no-store",
+        });
+
+        if (!res.ok) throw new Error("Failed to load hotel profile");
+        const data = await res.json();
+        if (!mounted) return;
+
+        const normalizedRooms = Array.isArray(data?.rooms)
+          ? data.rooms.filter((room) => String(room?.type || "").trim())
+          : [];
+
+        setHotelProfile({
+          ...data,
+          rooms: normalizedRooms,
+        });
+        setProfileError("");
+        setCalendarRoomType((prev) => prev || normalizedRooms[0]?.type || "");
+      } catch (err) {
+        if (!mounted) return;
+        setHotelProfile(null);
+        setProfileError(err?.message || "Failed to load hotel profile");
+      }
+    };
+
+    fetchHotelProfile();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const hotelId = String(hotelProfile?._id || "");
+  const hotelRooms = Array.isArray(hotelProfile?.rooms) ? hotelProfile.rooms : [];
+  const activeCalendarRoomType = calendarRoomType || hotelRooms[0]?.type || "";
+
+  useEffect(() => {
+    let active = true;
+
+    if (!hotelId || !activeCalendarRoomType) {
+      setCalendarByDate({});
+      setSelectedCalendarDate("");
+      setCalendarError("");
+      return undefined;
+    }
+
+    const fetchCalendarAvailability = async () => {
+      try {
+        setCalendarLoading(true);
+        setCalendarError("");
+
+        const calendarUrl = buildApiUrl(
+          `/api/hotels/${encodeURIComponent(hotelId)}/availability-calendar`,
+          {
+            roomType: activeCalendarRoomType,
+            month: calendarMonth,
+          }
+        );
+        if (!calendarUrl) throw new Error("Invalid API URL configuration");
+
+        const res = await fetch(calendarUrl, { cache: "no-store" });
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+
+        if (!res.ok) {
+          throw new Error(data?.msg || "Failed to load availability calendar");
+        }
+
+        if (!active) return;
+
+        const nextCalendarByDate = {};
+        (Array.isArray(data?.days) ? data.days : []).forEach((dayInfo) => {
+          if (!dayInfo?.date) return;
+          nextCalendarByDate[dayInfo.date] = dayInfo;
+        });
+
+        setCalendarByDate(nextCalendarByDate);
+
+        const todayKey = getDateKey(new Date());
+        setSelectedCalendarDate((prev) => {
+          if (prev && nextCalendarByDate[prev]) return prev;
+          if (nextCalendarByDate[todayKey]) return todayKey;
+          const firstDate = (Array.isArray(data?.days) ? data.days : [])[0]?.date;
+          return firstDate || "";
+        });
+      } catch (err) {
+        if (!active) return;
+        setCalendarByDate({});
+        setSelectedCalendarDate("");
+        setCalendarError(err?.message || "Failed to load availability calendar");
+      } finally {
+        if (active) setCalendarLoading(false);
+      }
+    };
+
+    fetchCalendarAvailability();
+
+    return () => {
+      active = false;
+    };
+  }, [hotelId, activeCalendarRoomType, calendarMonth]);
 
   useEffect(() => {
     if (!showPastRanges) return undefined;
@@ -177,6 +423,8 @@ export default function HotelDashboard() {
     const isPaidOrConfirmed = status === "paid" || status === "confirmed";
     return isPaidOrConfirmed ? sum + (Number(booking.amount) || 0) : sum;
   }, 0);
+  const calendarCells = createCalendarCells(calendarMonth, calendarByDate);
+  const selectedDayInfo = selectedCalendarDate ? calendarByDate[selectedCalendarDate] : null;
 
   if (loading) {
     return (
@@ -225,6 +473,196 @@ export default function HotelDashboard() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-5">
           <StatCard title="Total Bookings" value={totalBookings} tone="slate" />
           <StatCard title="Total Income" value={formatCurrency(totalIncome)} tone="green" />
+        </div>
+
+        <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">
+          <div className="p-5 md:p-6 border-b border-slate-200/75 bg-white/75 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="display-heading text-xl md:text-2xl font-semibold text-slate-800">
+                Room Availability Calendar
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Click any date to view booked rooms and rooms available for that day.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Room Type
+              </label>
+              <select
+                value={activeCalendarRoomType}
+                onChange={(event) => {
+                  setCalendarRoomType(event.target.value);
+                  setSelectedCalendarDate("");
+                }}
+                disabled={hotelRooms.length === 0}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-100"
+              >
+                {hotelRooms.length === 0 ? (
+                  <option value="">No rooms</option>
+                ) : (
+                  hotelRooms.map((room, index) => (
+                    <option key={`${room.type}-${index}`} value={room.type}>
+                      {room.type}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          </div>
+
+          <div className="p-5 md:p-6 space-y-4">
+            <div className="flex flex-wrap gap-2 text-[11px]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Available
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-amber-800">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                Filling Fast
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-rose-800">
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                Sold Out
+              </span>
+            </div>
+
+            {profileError && (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {profileError}
+              </p>
+            )}
+
+            {!profileError && !hotelId && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                Add your hotel profile first to enable day-wise calendar availability.
+              </div>
+            )}
+
+            {!profileError && hotelId && hotelRooms.length === 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                Add at least one room type in hotel profile to view calendar availability.
+              </div>
+            )}
+
+            {hotelId && hotelRooms.length > 0 && (
+              <>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth((prev) => shiftMonth(prev, -1))}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Prev
+                  </button>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {getMonthLabel(calendarMonth)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth((prev) => shiftMonth(prev, 1))}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Next
+                  </button>
+                </div>
+
+                <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="grid grid-cols-7 gap-2 text-[10px] text-slate-500 mb-2">
+                      {WEEK_DAYS.map((day) => (
+                        <div key={`${calendarMonth}-${day}`} className="text-center font-semibold py-1">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-2">
+                      {calendarCells.map((cell, index) => {
+                        if (!cell) {
+                          return (
+                            <div
+                              key={`${calendarMonth}-blank-${index}`}
+                              className="h-16 rounded-xl border border-transparent"
+                            />
+                          );
+                        }
+
+                        const isSelected = cell.date === selectedCalendarDate;
+                        const dayLevel = cell.info?.level;
+                        const toneClass = isSelected
+                          ? "border-sky-400 bg-sky-50 text-sky-900 ring-2 ring-sky-400/70"
+                          : getCalendarCellTone(dayLevel);
+
+                        return (
+                          <button
+                            key={cell.date}
+                            type="button"
+                            onClick={() => setSelectedCalendarDate(cell.date)}
+                            disabled={!cell.info}
+                            className={`h-16 rounded-xl border px-1 py-1 text-center transition ${toneClass} ${
+                              !cell.info ? "cursor-not-allowed opacity-60" : ""
+                            }`}
+                          >
+                            <span className="text-sm font-semibold">{cell.day}</span>
+                            {cell.info && (
+                              <span className="mt-1 block text-[10px] font-semibold">
+                                A:{cell.info.available} B:{cell.info.booked}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                      Selected Day
+                    </h3>
+
+                    {selectedDayInfo ? (
+                      <div className="mt-3 space-y-3">
+                        <p className="text-sm font-semibold text-slate-800">
+                          {formatCalendarDate(selectedCalendarDate)}
+                        </p>
+                        <DetailItem label="Room Type" value={activeCalendarRoomType} />
+                        <DetailItem
+                          label="Booking Status"
+                          value={getAvailabilityLevelLabel(selectedDayInfo.level)}
+                        />
+                        <DetailItem
+                          label="Bookings Done"
+                          value={String(Number(selectedDayInfo.booked) || 0)}
+                        />
+                        <DetailItem
+                          label="Rooms Available"
+                          value={String(Number(selectedDayInfo.available) || 0)}
+                        />
+                        <DetailItem
+                          label="Total Rooms"
+                          value={String(Number(selectedDayInfo.total) || 0)}
+                        />
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-sm text-slate-600">
+                        Click a date on the calendar to view room availability details.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {calendarLoading && hotelId && hotelRooms.length > 0 && (
+              <p className="text-xs text-slate-600">Loading calendar availability...</p>
+            )}
+
+            {calendarError && (
+              <p className="text-xs text-red-600">{calendarError}</p>
+            )}
+          </div>
         </div>
 
         <div className="soft-panel rounded-3xl border border-white/60 overflow-hidden">

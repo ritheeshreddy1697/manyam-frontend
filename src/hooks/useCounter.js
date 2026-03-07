@@ -7,18 +7,22 @@ export default function useCounter(target, start = false, duration = 1200) {
     if (!start) return;
 
     let startTime = null;
+    let frameId = 0;
 
     const step = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * target));
+      const nextCount = Math.floor(progress * target);
+      setCount((prev) => (prev === nextCount ? prev : nextCount));
 
       if (progress < 1) {
-        requestAnimationFrame(step);
+        frameId = requestAnimationFrame(step);
       }
     };
 
-    requestAnimationFrame(step);
+    frameId = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(frameId);
   }, [start, target, duration]);
 
   return count;

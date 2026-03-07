@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { auth, provider } from "../../firebase";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { buildApiUrl } from "../../utils/apiUrl";
 
 const FALLBACK_API_BASE_URLS = [
@@ -27,9 +27,39 @@ const formatAuthError = (err) => {
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const isFinishingLoginRef = useRef(false);
   const redirectHandledRef = useRef(false);
+  const redirectFrom = location.state?.from;
+
+  const isSafeAppPath = (value) => {
+    const path = String(value || "");
+    return path.startsWith("/") && !path.startsWith("//");
+  };
+
+  const getPostLoginPath = useCallback((role) => {
+    const from = isSafeAppPath(redirectFrom) ? redirectFrom : "";
+
+    if (role === "admin") {
+      return from.startsWith("/admin") ? from : "/admin/dashboard";
+    }
+
+    if (role === "hotel") {
+      return from.startsWith("/hotel") ? from : "/hotel/dashboard";
+    }
+
+    if (
+      from &&
+      !from.startsWith("/admin") &&
+      !from.startsWith("/hotel") &&
+      !from.startsWith("/login")
+    ) {
+      return from;
+    }
+
+    return "/";
+  }, [redirectFrom]);
 
   const getLoginApiUrls = useCallback(() => {
     const urls = [];
@@ -91,28 +121,23 @@ export default function Login() {
     const loginEmail = user.email?.trim().toLowerCase() || "";
     try {
       const data = await loginToBackend(firebaseToken);
+      const normalizedRole = String(data.role || "").trim().toLowerCase();
 
       localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
+      localStorage.setItem("role", normalizedRole);
       localStorage.setItem(
         "user",
         JSON.stringify({
           email: loginEmail,
-          role: data.role,
+          role: normalizedRole,
         })
       );
 
-      if (data.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (data.role === "hotel") {
-        navigate("/hotel/dashboard");
-      } else {
-        navigate("/");
-      }
+      navigate(getPostLoginPath(normalizedRole), { replace: true });
     } finally {
       isFinishingLoginRef.current = false;
     }
-  }, [navigate, loginToBackend]);
+  }, [navigate, loginToBackend, getPostLoginPath]);
 
   useEffect(() => {
     let active = true;

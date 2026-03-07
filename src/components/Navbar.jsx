@@ -11,7 +11,9 @@ export default function Navbar() {
       return {};
     }
   })();
-  const role = localStorage.getItem("role") || legacyUser.role || "";
+  const role = String(localStorage.getItem("role") || legacyUser.role || "")
+    .trim()
+    .toLowerCase();
   const hasHotelDashboardAccess = role === "hotel";
   const hasAdminDashboardAccess = role === "admin";
   const isLoggedIn = !!token && !!role;
@@ -70,8 +72,7 @@ export default function Navbar() {
   };
 
   const handleBookStay = () => {
-    if (role === "user") navigate("/booking");
-    else navigate("/login");
+    navigate("/booking");
   };
 
   const handleDashboardOpen = () => {
