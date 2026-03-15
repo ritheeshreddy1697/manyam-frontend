@@ -96,7 +96,7 @@ export default function AttractionPhotoManager() {
         </h2>
         <p className="text-sm text-slate-600 mt-1">
           Upload up to {MAX_ATTRACTION_PHOTOS} Cloudinary photos for each temple,
-          waterfall, viewpoint, and festival.
+          waterfall, viewpoint, festival, or gallery entry.
         </p>
       </div>
 
