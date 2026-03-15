@@ -29,6 +29,7 @@ export default function AttractionPhotoManager() {
   const [mediaByKey, setMediaByKey] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const hasUploadLimit = Number.isFinite(MAX_ATTRACTION_PHOTOS);
 
   useEffect(() => {
     let isMounted = true;
@@ -95,8 +96,9 @@ export default function AttractionPhotoManager() {
           Attraction Photo Manager
         </h2>
         <p className="text-sm text-slate-600 mt-1">
-          Upload up to {MAX_ATTRACTION_PHOTOS} Cloudinary photos for each temple,
-          waterfall, viewpoint, festival, or gallery entry.
+          {hasUploadLimit
+            ? `Upload up to ${MAX_ATTRACTION_PHOTOS} Cloudinary photos for each temple, waterfall, viewpoint, festival, or gallery entry.`
+            : "Upload unlimited Cloudinary photos for each temple, waterfall, viewpoint, festival, or gallery entry."}
         </p>
       </div>
 
@@ -164,7 +166,10 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
     .map(normalizeAttractionPhoto)
     .filter(Boolean);
   const mergedItem = mergeAttractionItem(item, mediaDoc);
-  const remainingSlots = Math.max(MAX_ATTRACTION_PHOTOS - currentPhotos.length, 0);
+  const hasUploadLimit = Number.isFinite(MAX_ATTRACTION_PHOTOS);
+  const remainingSlots = hasUploadLimit
+    ? Math.max(MAX_ATTRACTION_PHOTOS - currentPhotos.length, 0)
+    : Infinity;
   const fileNames = selectedFiles.map((file) => file.name).join(", ");
 
   useEffect(() => {
@@ -224,7 +229,7 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
       return;
     }
 
-    if (files.length > remainingSlots) {
+    if (hasUploadLimit && files.length > remainingSlots) {
       setSelectedFiles([]);
       setMessage({
         type: "error",
@@ -431,7 +436,9 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
           <div>
             <p className="text-sm text-slate-600">{item.location || "Manyam"}</p>
             <p className="mt-1 text-xs text-slate-500">
-              {currentPhotos.length} / {MAX_ATTRACTION_PHOTOS} uploaded photos
+              {hasUploadLimit
+                ? `${currentPhotos.length} / ${MAX_ATTRACTION_PHOTOS} uploaded photos`
+                : `${currentPhotos.length} uploaded photos`}
             </p>
           </div>
 
@@ -540,7 +547,9 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
               Upload Photos
             </label>
             <p className="mt-1 text-xs text-slate-500">
-              Select up to {remainingSlots} more photo{remainingSlots === 1 ? "" : "s"}.
+              {hasUploadLimit
+                ? `Select up to ${remainingSlots} more photo${remainingSlots === 1 ? "" : "s"}.`
+                : "Select as many photos as you like."}
             </p>
           </div>
 
@@ -550,7 +559,7 @@ function AttractionPhotoCard({ category, item, mediaDoc, onMediaUpdated }) {
             accept="image/*"
             multiple
             onChange={handleFileChange}
-            disabled={remainingSlots === 0 || submitting}
+            disabled={(hasUploadLimit && remainingSlots === 0) || submitting}
             className="block w-full text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800 disabled:cursor-not-allowed"
           />
 

@@ -1,4 +1,4 @@
-export const MAX_ATTRACTION_PHOTOS = 3;
+export const MAX_ATTRACTION_PHOTOS = Number.POSITIVE_INFINITY;
 export const DEFAULT_ATTRACTION_FOCUS = 50;
 
 const clampAttractionFocus = (value) => {
